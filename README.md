@@ -2,7 +2,7 @@
 
 This repo replicates this hierarchy for a theoretical AV
 
-![hierachy][img/hierarchy.png]
+![hierachy](img/hierarchy.png)
 
 ## Installation
 
