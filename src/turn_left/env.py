@@ -19,4 +19,4 @@ class CarRacing_turn_left(CarRacing):
 
 if __name__=='__main__':
     env = CarRacing_turn_left()
-    play(env,None)
+    play(env)
