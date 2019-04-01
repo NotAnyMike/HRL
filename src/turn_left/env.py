@@ -16,6 +16,12 @@ class CarRacing_turn_left(CarRacing):
     
     def reset(self):
         super(CarRacing_turn_left,self).reset()
+        pos = self.get_position_near_junction('xt',8)
+        self.place_agent(pos)
+
+    def step(self,action):
+        # TODO check if it is time to reset 
+        return super(CarRacing_turn_left,self).step(action)
 
 if __name__=='__main__':
     env = CarRacing_turn_left()
