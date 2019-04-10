@@ -1,0 +1,99 @@
+import os
+from pdb import set_trace
+from copy import deepcopy
+
+import pandas as pd
+import numpy as np
+from tensorboard_logger import Logger
+from stable_baselines.common.policies import CnnPolicy
+from stable_baselines.common.vec_env import DummyVecEnv
+from stable_baselines.common.vec_env import SubprocVecEnv
+from stable_baselines import PPO2
+
+from hrl.common.arg_extractor import get_args
+
+def run_experiment(
+        save=True, 
+        folder='experiments', 
+        weights_location=None,
+        tag=None,
+        env=None,
+        ):
+    """
+    save 
+    folder
+    tag
+    weights_location
+    description
+    env
+    """
+    # saving args
+    args = deepcopy(locals())
+    
+    # Check if folder exists and is a valid name
+    if save:
+        folder = folder.replace(' ', '_')
+        if os.path.exists(folder):
+            print(" - Folder for experiments found")
+        else:
+            print(" - Creating folder for experiments")
+            os.makedirs(folder)
+
+        # Load cvs of experiments
+        experiment_csv = '/'.join([folder, "experiments.csv"])
+        if os.path.isfile(experiment_csv):
+            print(" - Loading experiments.csv file")
+            df = pd.read_csv(experiment_csv, index_col=0)
+        else:
+            print(" - experiments.csv not found, creating one")
+            df = pd.DataFrame(columns=args.keys())
+            df.to_csv(experiment_csv)
+
+        df = df.append(args, ignore_index=True)
+        df.to_csv(experiment_csv)
+
+        # Creating folder for experiment
+        experiment_folder = '/'.join([folder,str(df.index[-1])])
+        os.makedirs(experiment_folder)
+
+
+    # Start running experiment
+    print("########################")
+    print("# RUNNING EXPERIMENT   #")
+    print("# ID: %i " % df.index[-1]) 
+    print("########################")
+
+    logs_folder = experiment_folder + '/logs'
+    logger = Logger(logs_folder)
+
+    #env = SubprocVecEnv([lambda: env for i in range(1)]) # Working but
+    env = DummyVecEnv([env])
+    model = PPO2(
+                CnnPolicy, 
+                env,
+                verbose=1, 
+                tensorboard_log=logs_folder,
+                max_grad_norm=100,
+                n_steps=200,
+                policy_kwargs={'data_format':'NCHW'},
+            )
+
+    model.learn(
+            total_timesteps=50000,
+            callback=None,
+            )
+
+    model.save(experiment_folder+"_final")
+
+class Callback:
+    def __init__(self, logger, args,n):
+        self.logger = logger
+        self.args = args
+        self.n = n
+
+    def set_bars(self, local_bar, global_bar):
+        self.local_bar = local_bar
+        self.global_bar = global_bar
+
+    def __call__(self, local_vars, global_vars):
+        pass
