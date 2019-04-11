@@ -4,11 +4,13 @@ from copy import deepcopy
 
 import pandas as pd
 import numpy as np
+import tqdm
 from tensorboard_logger import Logger
 from stable_baselines.common.policies import CnnPolicy
 from stable_baselines.common.vec_env import DummyVecEnv
 from stable_baselines.common.vec_env import SubprocVecEnv
 from stable_baselines import PPO2
+from pyglet.window import key
 
 from hrl.common.arg_extractor import get_args
 
@@ -18,6 +20,9 @@ def run_experiment(
         weights_location=None,
         tag=None,
         env=None,
+        n=0,
+        save_interval=0,
+        train_steps=500000,
         ):
     """
     save 
@@ -56,6 +61,8 @@ def run_experiment(
         experiment_folder = '/'.join([folder,str(df.index[-1])])
         os.makedirs(experiment_folder)
 
+        del args
+
 
     # Start running experiment
     print("########################")
@@ -78,22 +85,43 @@ def run_experiment(
                 policy_kwargs={'data_format':'NCHW'},
             )
 
-    model.learn(
-            total_timesteps=50000,
-            callback=None,
-            )
+    # Set key functions
+    show_hide = Show_hide(model)
+    for tmp_env in env.envs:
+        tmp_env.set_press_fn(show_hide)
+
+    # set bar
+    callback = Callback(
+            logger=logger,
+            train_steps=train_steps,
+            n=0)
+    with tqdm.tqdm(total=train_steps, leave=True) as bar:
+        callback.set_bars(bar)
+        model.learn(
+                total_timesteps=train_steps,
+                callback=callback,
+                )
 
     model.save(experiment_folder+"_final")
 
-class Callback:
-    def __init__(self, logger, args,n):
-        self.logger = logger
-        self.args = args
-        self.n = n
+class Show_hide:
+    def __init__(self,model):
+        self.model = model
 
-    def set_bars(self, local_bar, global_bar):
-        self.local_bar = local_bar
+    def __call__(self,k, mod):
+        if k==key.S:
+            self.model.render = not self.model.render
+
+class Callback:
+    def __init__(self, logger,train_steps, n):
+        self.logger = logger
+        self.n = n
+        self.train_steps = train_steps
+
+    def set_bars(self, global_bar):
         self.global_bar = global_bar
 
     def __call__(self, local_vars, global_vars):
-        pass
+        self.global_bar.update(1)
+        self.n += 1
+        self.global_bar.set_description("Training: steps %i / %i" % (self.n,self.train_steps))

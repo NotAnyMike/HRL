@@ -5,8 +5,7 @@ from hrl.turn_left.env import CarRacing_turn
 
 if __name__ == '__main__':
     # Run arg parser
-    args = vars(get_args())
-    args = dict((k,v) for k,v in args.items() if v is not None)
+    args = get_args()
 
     env = CarRacing_turn
 
