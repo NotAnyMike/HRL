@@ -16,7 +16,6 @@ class CarRacing_turn(CarRacing):
                 if tile.typename == TILE_NAME:
                     self.env.add_current_tile(tile.id, tile.lane)
                 obj.tiles.add(tile)
-                #print tile.road_friction, "ADD", len(obj.tiles) 
 
                 # Checking if it was visited before
                 #if len(self.env._next_nodes) > 0 and tile.id in self.env._next_nodes[0]:
@@ -41,7 +40,6 @@ class CarRacing_turn(CarRacing):
                 obj.tiles.remove(tile)
                 if self.env.new == False and not local_vars['contact'].touching:
                     self.env.remove_current_tile(tile.id, tile.lane)
-                #print tile.road_friction, "DEL", len(obj.tiles) -- should delete to zero when on grass (this works)
                 # Registering last contact with track
                 if tile.id in predictions_id:
                     self.env.last_touch_with_track = self.env.t
@@ -49,8 +47,9 @@ class CarRacing_turn(CarRacing):
         super(CarRacing_turn,self).__init__(
                 allow_reverse=False, 
                 grayscale=1,
-                show_info_panel=1,
-                discretize_actions=None,
+                show_info_panel=False,
+                verbose=0,
+                discretize_actions="hard",
                 num_tracks=2,
                 num_lanes=1,
                 num_lanes_changes=4,
@@ -63,7 +62,6 @@ class CarRacing_turn(CarRacing):
         self.new = True
     
     def reset(self):
-        print("REWARD:", self.reward)
         to_return = super(CarRacing_turn,self).reset()
         tiles_before = 8
         filter = (self.info['x']) | ((self.info['t']) & (self.info['track'] >0))
@@ -117,7 +115,6 @@ class CarRacing_turn(CarRacing):
             ids = []
             if start > end:
                 ids = []
-                #set_trace()
                 len_other_tracks = (self.info['track'] < track_id).sum()
                 len_track = len(self.tracks[track_id])
                 start = start-len_other_tracks

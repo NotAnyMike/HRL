@@ -21,7 +21,7 @@ def run_experiment(
         tag=None,
         env=None,
         n=0,
-        save_interval=0,
+        save_interval=500,
         train_steps=500000,
         ):
     """
@@ -56,18 +56,20 @@ def run_experiment(
 
         df = df.append(args, ignore_index=True)
         df.to_csv(experiment_csv)
+        id = df.index[-1]
 
         # Creating folder for experiment
         experiment_folder = '/'.join([folder,str(df.index[-1])])
         os.makedirs(experiment_folder)
 
         del args
+        del df
 
 
     # Start running experiment
     print("########################")
     print("# RUNNING EXPERIMENT   #")
-    print("# ID: %i " % df.index[-1]) 
+    print("# ID: %i " % id) 
     print("########################")
 
     logs_folder = experiment_folder + '/logs'
@@ -78,7 +80,7 @@ def run_experiment(
     model = PPO2(
                 CnnPolicy, 
                 env,
-                verbose=1, 
+                verbose=0,
                 tensorboard_log=logs_folder,
                 max_grad_norm=100,
                 n_steps=200,
@@ -94,7 +96,13 @@ def run_experiment(
     callback = Callback(
             logger=logger,
             train_steps=train_steps,
-            n=0)
+            n=n,
+            experiment_folder=experiment_folder,
+            save_interval=save_interval,
+            id=id,
+            )
+
+    print("\n############ STARTING TRAINING ###########\n")
     with tqdm.tqdm(total=train_steps, leave=True) as bar:
         callback.set_bars(bar)
         model.learn(
@@ -102,7 +110,7 @@ def run_experiment(
                 callback=callback,
                 )
 
-    model.save(experiment_folder+"_final")
+    model.save(experiment_folder+"/weights_final")
 
 class Show_hide:
     def __init__(self,model):
@@ -113,15 +121,40 @@ class Show_hide:
             self.model.render = not self.model.render
 
 class Callback:
-    def __init__(self, logger,train_steps, n):
+    def __init__(self, logger,train_steps,n,experiment_folder,
+            save_interval, id):
+
+        self.last_step = 0
+
         self.logger = logger
         self.n = n
         self.train_steps = train_steps
+        self.experiment_folder = experiment_folder
+        self.save_interval = save_interval 
+        self.id = id
 
     def set_bars(self, global_bar):
         self.global_bar = global_bar
 
     def __call__(self, local_vars, global_vars):
-        self.global_bar.update(1)
-        self.n += 1
-        self.global_bar.set_description("Training: steps %i / %i" % (self.n,self.train_steps))
+        current_step = int(self.n + local_vars['self'].num_timesteps)
+        self.global_bar.update(local_vars['timestep'])
+
+        # TODO Print the name of experiment
+        self.global_bar.set_description("Training | ID: %i | fps: %i" \
+                % (self.id,int(local_vars['fps'])))
+
+        if self.save_interval > 0:
+            if (current_step % self.save_interval) - (self.last_step % self.save_interval) > 0:
+                local_vars['self'].save(self.experiment_folder + '/weights_'+str(current_step))
+
+        #set_trace()
+        # TODO Check what is the locals and globals
+
+        # TODO
+        # Log speed
+        # Log angle
+        # Log actions taken
+        # Log num steps
+
+        self.last_step = current_step
