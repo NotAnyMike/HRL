@@ -73,7 +73,7 @@ def run_experiment(
     print("########################")
 
     logs_folder = experiment_folder + '/logs'
-    logger = Logger(logs_folder)
+    logger = Logger(logs_folder+"/extra")
 
     #env = SubprocVecEnv([lambda: env for i in range(1)]) # Working but
     env = DummyVecEnv([env])
@@ -138,7 +138,7 @@ class Callback:
 
     def __call__(self, local_vars, global_vars):
         current_step = int(self.n + local_vars['self'].num_timesteps)
-        self.global_bar.update(local_vars['timestep'])
+        self.global_bar.update(current_step - self.last_step)
 
         # TODO Print the name of experiment
         self.global_bar.set_description("Training | ID: %i | fps: %i" \
@@ -152,6 +152,7 @@ class Callback:
         # TODO Check what is the locals and globals
 
         # TODO
+        # Reward also because the normal logger does not log every episode
         # Log speed
         # Log angle
         # Log actions taken
