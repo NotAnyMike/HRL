@@ -60,8 +60,14 @@ class CarRacing_turn(CarRacing):
                 )
         self.goal_id = None
         self.new = True
-    
-    def reset(self):
+
+    def _weak_reset(self):
+        """
+        This function takes care of ALL the processes to reset the 
+        environment, if anything goes wrong, it returns false.
+        This is in order to allow several retries to reset 
+        the environment
+        """
         to_return = super(CarRacing_turn,self).reset()
         tiles_before = 8
         filter = (self.info['x']) | ((self.info['t']) & (self.info['track'] >0))
@@ -135,6 +141,11 @@ class CarRacing_turn(CarRacing):
         current_track = self.info[idx]['track']
         node_id_main_track = np.where((self.info['intersection_id'] == intersection_id) & (self.info['track'] == 0))[0][0]
         node_id_second_track = np.where((self.info['intersection_id'] == intersection_id) & (self.info['track'] == 1))[0]
+
+        if len(node_id_second_track) == 0:
+            # There is no other point in the second track
+            return False
+
         if direction == 1:
             node_id_second_track = node_id_second_track[-1]
         else:
@@ -160,6 +171,13 @@ class CarRacing_turn(CarRacing):
 
         self.goal_id = list(self._next_nodes[-1].keys())[0]
         self.new = True
+        return to_return
+    
+    def reset(self):
+        while True:
+            to_return = self._weak_reset()
+            if to_return is not False:
+                break
         return to_return
 
     def _remove_prediction(self, id,lane,direction):

@@ -21,7 +21,7 @@ def run_experiment(
         tag=None,
         env=None,
         n=0,
-        save_interval=500,
+        save_interval=10000,
         train_steps=500000,
         ):
     """
@@ -88,7 +88,7 @@ def run_experiment(
             )
 
     # Set key functions
-    show_hide = Show_hide(model)
+    show_hide = Show_hide(model,experiment_folder)
     for tmp_env in env.envs:
         tmp_env.set_press_fn(show_hide)
 
@@ -113,12 +113,15 @@ def run_experiment(
     model.save(experiment_folder+"/weights_final")
 
 class Show_hide:
-    def __init__(self,model):
+    def __init__(self,model,experiment_folder="experiments/"):
         self.model = model
+        self.experiment_folder = experiment_folder
 
     def __call__(self,k, mod):
-        if k==key.S:
+        if k==key.S: # S from show
             self.model.render = not self.model.render
+        if k==key.T: # T from T screnshot
+            self.model.env.envs[0].screenshot(self.experiment_folder)
 
 class Callback:
     def __init__(self, logger,train_steps,n,experiment_folder,
@@ -145,11 +148,10 @@ class Callback:
                 % (self.id,int(local_vars['fps'])))
 
         if self.save_interval > 0:
-            if (current_step % self.save_interval) - (self.last_step % self.save_interval) > 0:
+            if current_step - self.last_step > self.save_interval:
                 local_vars['self'].save(self.experiment_folder + '/weights_'+str(current_step))
 
         #set_trace()
-        # TODO Check what is the locals and globals
 
         # TODO
         # Reward also because the normal logger does not log every episode
