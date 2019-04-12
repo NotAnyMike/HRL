@@ -59,6 +59,8 @@ def run_experiment(
             df = pd.DataFrame(columns=args.keys())
             df.to_csv(experiment_csv)
 
+        args['env_config'] = str(env.envs[0]._org_config)
+
         df = df.append(args, ignore_index=True)
         df.to_csv(experiment_csv)
         id = df.index[-1]
@@ -66,8 +68,6 @@ def run_experiment(
         # Creating folder for experiment
         experiment_folder = '/'.join([folder,str(df.index[-1])])
         os.makedirs(experiment_folder)
-
-        args['env_config'] = str(env.envs[0]._org_config)
 
         logs_folder = experiment_folder + '/logs'
         logger = Logger(logs_folder+"/extra")
@@ -145,12 +145,16 @@ class Show_hide:
         if not self.not_save:
             if k==key.T: # T from T screnshot
                 self.model.env.envs[0].screenshot(self.experiment_folder)
+            if k==key.W: # W from weights
+                self.model.save(
+                        self.experiment_folder+'/weights_'+str(self.model.num_timesteps))
 
 class Callback:
     def __init__(self,not_save,logger,train_steps,n,experiment_folder,
             save_interval, id):
 
         self.last_step = 0
+        self.last_step_saved = 0
 
         self.not_save = not_save
         self.logger = logger
@@ -172,7 +176,8 @@ class Callback:
                 % (self.id,int(local_vars['fps'])))
 
         if self.save_interval > 0 and not self.not_save:
-            if current_step - self.last_step > self.save_interval:
+            if current_step - self.last_step_saved > self.save_interval:
+                self.last_step_saved = current_step
                 local_vars['self'].save(self.experiment_folder + '/weights_'+str(current_step))
 
         #set_trace()
