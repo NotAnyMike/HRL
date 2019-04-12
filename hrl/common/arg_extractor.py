@@ -21,6 +21,8 @@ def get_args():
     parser = argparse.ArgumentParser(
         description='This will parse the argument and pass them as parameters to th emian experiment function')
 
+    parser.add_argument('--env', type=str, 
+            help="The name of the class of the environment to run on")
     parser.add_argument('--not_save', action='store_true', 
             help="True means not saving the experiment")
     parser.add_argument('--folder', type=str, 

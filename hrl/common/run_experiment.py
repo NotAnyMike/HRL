@@ -13,13 +13,14 @@ from stable_baselines import PPO2
 from pyglet.window import key
 
 from hrl.common.arg_extractor import get_args
+from hrl.turn_left import env as environments
 
 def run_experiment(
         not_save=False, 
         folder='experiments', 
         weights_location=None,
         tag=None,
-        env=None,
+        env='Base',
         n=0,
         save_interval=10000,
         train_steps=500000,
@@ -32,8 +33,12 @@ def run_experiment(
     description
     env
     """
-    # saving args
+    # Saving args
     args = deepcopy(locals())
+
+    # Get env
+    env = getattr(environments, env)
+    env = DummyVecEnv([env])
     
     # Check if folder exists and is a valid name
     if not not_save:
@@ -62,10 +67,11 @@ def run_experiment(
         experiment_folder = '/'.join([folder,str(df.index[-1])])
         os.makedirs(experiment_folder)
 
+        args['env_config'] = str(env.envs[0]._org_config)
+
         logs_folder = experiment_folder + '/logs'
         logger = Logger(logs_folder+"/extra")
 
-        del args
         del df
     else:
         id = -1
@@ -73,14 +79,6 @@ def run_experiment(
         logger = None
         experiment_folder = None
 
-    # Start running experiment
-    print("########################")
-    print("# RUNNING EXPERIMENT   #")
-    print("# ID: %i " % id) 
-    print("########################")
-
-    #env = SubprocVecEnv([lambda: env for i in range(1)]) # Working but
-    env = DummyVecEnv([env])
     model = PPO2(
                 CnnPolicy, 
                 env,
@@ -92,7 +90,7 @@ def run_experiment(
             )
 
     # Set key functions
-    show_hide = Show_hide(model,experiment_folder)
+    show_hide = Show_hide(model,not_save,experiment_folder)
     for tmp_env in env.envs:
         tmp_env.set_press_fn(show_hide)
 
@@ -107,6 +105,23 @@ def run_experiment(
             id=id,
             )
 
+    # Start running experiment
+    # Creating nice table
+    _width = 40
+    del args['env_config']
+    max_k_width = max([len(k) for k in args])
+    print("\n{}".format("#"*_width))
+    print("# {1:^{0}} #".format(_width-4, "RUNNING EXPERIMENT"))
+    print("# {1:^{0}} #".format(_width-4, ""))
+    print("# {1:<{0}} #".format(_width-4, "{0:{2}s}: {1:03d}".format("ID",id,max_k_width)))
+    for k,v in args.items():
+        if type(v) in [float,int]:
+            print("# {1:<{0}} #".format(_width-4,"{0:{2}s}: {1:0d}".format(k,v,max_k_width)))
+        else:
+            print("# {1:<{0}} #".format(_width-4,"{0:{2}s}: {1:s}".format(k,str(v),max_k_width)))
+    print("{}".format("#"*_width))
+    del args
+
     print("\n############ STARTING TRAINING ###########\n")
     with tqdm.tqdm(total=train_steps, leave=True) as bar:
         callback.set_bars(bar)
@@ -119,15 +134,17 @@ def run_experiment(
         model.save(experiment_folder+"/weights_final")
 
 class Show_hide:
-    def __init__(self,model,experiment_folder="experiments/"):
+    def __init__(self,model,not_save,experiment_folder="experiments/"):
         self.model = model
         self.experiment_folder = experiment_folder
+        self.not_save = not_save
 
     def __call__(self,k, mod):
         if k==key.S: # S from show
             self.model.render = not self.model.render
-        if k==key.T: # T from T screnshot
-            self.model.env.envs[0].screenshot(self.experiment_folder)
+        if not self.not_save:
+            if k==key.T: # T from T screnshot
+                self.model.env.envs[0].screenshot(self.experiment_folder)
 
 class Callback:
     def __init__(self,not_save,logger,train_steps,n,experiment_folder,
@@ -168,3 +185,10 @@ class Callback:
         # Log num steps
 
         self.last_step = current_step
+
+if __name__ == '__main__':
+    # Run arg parser
+    args = get_args()
+
+    # Run run experiment
+    run_experiment(**args)

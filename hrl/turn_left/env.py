@@ -2,11 +2,27 @@ import numpy as np
 from pdb import set_trace
 
 from gym.envs.box2d import CarRacing
-from gym.envs.box2d.car_racing import play, TILE_NAME
+from gym.envs.box2d.car_racing import play, TILE_NAME, default_reward_callback
 
-class CarRacing_turn(CarRacing):
+class Base(CarRacing):
+    def __init__(self, reward_fn=default_reward_callback):
+        super(Base,self).__init__(
+                allow_reverse=False, 
+                grayscale=1,
+                show_info_panel=False,
+                verbose=0,
+                discretize_actions="hard",
+                num_tracks=2,
+                num_lanes=1,
+                num_lanes_changes=4,
+                max_time_out=2,
+                frames_per_state=4,
+                max_episode_reward=10,
+                reward_fn=reward_fn,
+                )
+
+class Turn_Left(Base):
     def __init__(self):
-
         def reward_fn(tile,obj,begin,local_vars,global_vars):
             # Substracting value of obstacle
             self = local_vars['self']
@@ -44,20 +60,7 @@ class CarRacing_turn(CarRacing):
                 if tile.id in predictions_id:
                     self.env.last_touch_with_track = self.env.t
 
-        super(CarRacing_turn,self).__init__(
-                allow_reverse=False, 
-                grayscale=1,
-                show_info_panel=False,
-                verbose=0,
-                discretize_actions="hard",
-                num_tracks=2,
-                num_lanes=1,
-                num_lanes_changes=4,
-                max_time_out=2,
-                frames_per_state=4,
-                reward_fn=reward_fn,
-                max_episode_reward=10,
-                )
+        super(Turn_Left,self).__init__(reward_fn=reward_fn)
         self.goal_id = None
         self.new = True
 
@@ -68,7 +71,7 @@ class CarRacing_turn(CarRacing):
         This is in order to allow several retries to reset 
         the environment
         """
-        to_return = super(CarRacing_turn,self).reset()
+        to_return = super(Turn_Left,self).reset()
         tiles_before = 8
         filter = (self.info['x']) | ((self.info['t']) & (self.info['track'] >0))
         idx = np.random.choice(np.where(filter)[0])
@@ -195,7 +198,7 @@ class CarRacing_turn(CarRacing):
         # TODO check if it is time to reset 
         if action is not None:
             self.new = False
-        s,r,d,_ = super(CarRacing_turn,self).step(action)
+        s,r,d,_ = super(Turn_Left,self).step(action)
         if self.goal_id in self._current_nodes:
             d = True
         return s,r,d,_
@@ -208,5 +211,5 @@ class CarRacing_turn(CarRacing):
                 del self._current_nodes[id]
 
 if __name__=='__main__':
-    env = CarRacing_turn()
+    env = Base()
     play(env)
