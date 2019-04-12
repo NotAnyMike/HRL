@@ -21,6 +21,8 @@ def get_args():
     parser = argparse.ArgumentParser(
         description='This will parse the argument and pass them as parameters to th emian experiment function')
 
+    parser.add_argument('--not_save', action='store_true', 
+            help="True means not saving the experiment")
     parser.add_argument('--folder', type=str, 
             help="The folder where the experiment will be save.Defautl is 'experiments'")
     parser.add_argument('--save_interval', type=int,

@@ -15,7 +15,7 @@ from pyglet.window import key
 from hrl.common.arg_extractor import get_args
 
 def run_experiment(
-        save=True, 
+        not_save=False, 
         folder='experiments', 
         weights_location=None,
         tag=None,
@@ -36,7 +36,7 @@ def run_experiment(
     args = deepcopy(locals())
     
     # Check if folder exists and is a valid name
-    if save:
+    if not not_save:
         folder = folder.replace(' ', '_')
         if os.path.exists(folder):
             print(" - Folder for experiments found")
@@ -62,18 +62,22 @@ def run_experiment(
         experiment_folder = '/'.join([folder,str(df.index[-1])])
         os.makedirs(experiment_folder)
 
+        logs_folder = experiment_folder + '/logs'
+        logger = Logger(logs_folder+"/extra")
+
         del args
         del df
-
+    else:
+        id = -1
+        logs_folder= None
+        logger = None
+        experiment_folder = None
 
     # Start running experiment
     print("########################")
     print("# RUNNING EXPERIMENT   #")
     print("# ID: %i " % id) 
     print("########################")
-
-    logs_folder = experiment_folder + '/logs'
-    logger = Logger(logs_folder+"/extra")
 
     #env = SubprocVecEnv([lambda: env for i in range(1)]) # Working but
     env = DummyVecEnv([env])
@@ -94,6 +98,7 @@ def run_experiment(
 
     # set bar
     callback = Callback(
+            not_save=not_save,
             logger=logger,
             train_steps=train_steps,
             n=n,
@@ -110,7 +115,8 @@ def run_experiment(
                 callback=callback,
                 )
 
-    model.save(experiment_folder+"/weights_final")
+    if not not_save:
+        model.save(experiment_folder+"/weights_final")
 
 class Show_hide:
     def __init__(self,model,experiment_folder="experiments/"):
@@ -124,11 +130,12 @@ class Show_hide:
             self.model.env.envs[0].screenshot(self.experiment_folder)
 
 class Callback:
-    def __init__(self, logger,train_steps,n,experiment_folder,
+    def __init__(self,not_save,logger,train_steps,n,experiment_folder,
             save_interval, id):
 
         self.last_step = 0
 
+        self.not_save = not_save
         self.logger = logger
         self.n = n
         self.train_steps = train_steps
@@ -147,7 +154,7 @@ class Callback:
         self.global_bar.set_description("Training | ID: %i | fps: %i" \
                 % (self.id,int(local_vars['fps'])))
 
-        if self.save_interval > 0:
+        if self.save_interval > 0 and not self.not_save:
             if current_step - self.last_step > self.save_interval:
                 local_vars['self'].save(self.experiment_folder + '/weights_'+str(current_step))
 
