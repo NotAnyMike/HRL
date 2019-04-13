@@ -26,7 +26,13 @@ def run_experiment(
         n=0,
         save_interval=10000,
         train_steps=int(1e6),
+        description=None,
+        weights=None,
         ):
+
+    if weights is not None and not os.path.isfile(weights):
+        raise ValueError("Weights do not exist")
+
     # Saving args
     args = deepcopy(locals())
 
@@ -79,15 +85,19 @@ def run_experiment(
         logger = None
         experiment_folder = None
 
-    model = PPO2(
-                CnnPolicy, 
-                env,
-                verbose=0,
-                tensorboard_log=logs_folder,
-                max_grad_norm=100,
-                n_steps=200,
-                policy_kwargs={'data_format':'NCHW'},
-            )
+    if weights is not None:
+        model = PPO2.load(weights)
+        model.set_env(env)
+    else:
+        model = PPO2(
+                    CnnPolicy, 
+                    env,
+                    verbose=0,
+                    tensorboard_log=logs_folder,
+                    max_grad_norm=100,
+                    n_steps=200,
+                    policy_kwargs={'data_format':'NCHW'},
+                )
 
     # Set key functions
     show_hide = Show_hide(model,not_save,experiment_folder)

@@ -44,6 +44,7 @@ To improve it try:
 ### Regarding the left policy
 
 To improve it try:
+- [ ] Increase the reward for getting the goal
 - [ ] Using multiple environements at the same time
 - [ ] Max reward = 1
 - [ ] Initialize the weights with the baseline

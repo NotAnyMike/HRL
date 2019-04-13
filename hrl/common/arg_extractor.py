@@ -42,6 +42,11 @@ def get_train_args():
                     the next steps. Default: 0")
     parser.add_argument('--env_num', type=int,
             help="The number of environements to use")
+    parser.add_argument('--description','-d', type=str,
+            help="A small description of the experiment")
+    parser.add_argument('--weights', type=str,
+            help="The position of the weights to load before \
+                    continuing training")
     args = parser.parse_args()
 
     args = vars(args)
