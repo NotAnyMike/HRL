@@ -40,3 +40,10 @@ The only important argument to give is the name of the experiment, e.g. `-e 5`, 
 To improve it try:
 - [ ] Time out reduce to 1 or less
 - [ ] Max reward per episode to 5, in order to make it faster, maybe a number betwen 1 and 5 is better
+
+### Regarding the left policy
+
+To improve it try:
+- [ ] Using multiple environements at the same time
+- [ ] Max reward = 1
+- [ ] Initialize the weights with the baseline

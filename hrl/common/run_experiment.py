@@ -22,24 +22,19 @@ def run_experiment(
         weights_location=None,
         tag=None,
         env='Base',
+        env_num=4,
         n=0,
         save_interval=10000,
-        train_steps=500000,
+        train_steps=int(1e6),
         ):
-    """
-    save 
-    folder
-    tag
-    weights_location
-    description
-    env
-    """
     # Saving args
     args = deepcopy(locals())
 
     # Get env
     env = getattr(environments, env)
-    env = DummyVecEnv([env])
+    env = DummyVecEnv([env]*env_num)
+
+    args['env_config'] = str(env.envs[0]._org_config)
 
     if os.path.exists('to_delete'):
         shutil.rmtree('to_delete')
@@ -63,14 +58,15 @@ def run_experiment(
             df = pd.DataFrame(columns=args.keys())
             df.to_csv(experiment_csv)
 
-        args['env_config'] = str(env.envs[0]._org_config)
-
         df = df.append(args, ignore_index=True)
         df.to_csv(experiment_csv)
         id = df.index[-1]
 
         # Creating folder for experiment
-        experiment_folder = '/'.join([folder,str(df.index[-1])])
+        if tag is None: 
+            experiment_folder = '/'.join([folder,str(df.index[-1])])
+        else: 
+            experiment_folder = '/'.join([folder,str(df.index[-1])+'_'+tag])
         os.makedirs(experiment_folder)
 
         logs_folder = experiment_folder + '/logs'
@@ -139,7 +135,7 @@ def run_experiment(
             model.save(experiment_folder+"/weights_final")
 
     except KeyboardInterrupt:
-        if input("Do you want to delete this experiment? (Yes/n) ") == "Yes":
+        if not not_save and input("Do you want to delete this experiment? (Yes/n) ") == "Yes":
             df = pd.read_csv(experiment_csv, index_col=0)
             df.drop(df.index[id],inplace=True)
             df.to_csv(experiment_csv)
@@ -197,18 +193,18 @@ class Callback:
                 self.last_step_saved = current_step
                 local_vars['self'].save(self.experiment_folder + '/weights_'+str(current_step))
 
-        # Log actions taken
-        self.logger.log_histogram('episode/actions', local_vars['actions'], current_step)
+            # Log actions taken
+            self.logger.log_histogram('episode/actions', local_vars['actions'], current_step)
 
-        # Reward also because the normal logger does not log every episode
-        #self.logger.log_value('episode/ep_reward', local_vars['true_reward'], current_step)
+            # Reward also because the normal logger does not log every episode
+            #self.logger.log_value('episode/ep_reward', local_vars['true_reward'], current_step)
 
-        # Log num steps
-        #self.logger.log_value('episode/ep_steps', local_vars['steps'], current_step)
+            # Log num steps
+            #self.logger.log_value('episode/ep_steps', local_vars['steps'], current_step)
 
-        # TODO
-        # Log speed
-        # Log angle
+            # TODO
+            # Log speed
+            # Log angle
 
         self.last_step = current_step
 

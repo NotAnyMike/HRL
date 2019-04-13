@@ -21,7 +21,7 @@ class Base(CarRacing):
                 reward_fn=reward_fn,
                 )
 
-class Turn_Left(Base):
+class Turn_left(Base):
     def __init__(self):
         def reward_fn(tile,obj,begin,local_vars,global_vars):
             # Substracting value of obstacle
@@ -60,7 +60,7 @@ class Turn_Left(Base):
                 if tile.id in predictions_id:
                     self.env.last_touch_with_track = self.env.t
 
-        super(Turn_Left,self).__init__(reward_fn=reward_fn,max_episode_reward=10)
+        super(Turn_left,self).__init__(reward_fn=reward_fn,max_episode_reward=10)
         self.goal_id = None
         self.new = True
 
@@ -71,7 +71,7 @@ class Turn_Left(Base):
         This is in order to allow several retries to reset 
         the environment
         """
-        to_return = super(Turn_Left,self).reset()
+        to_return = super(Turn_left,self).reset()
         tiles_before = 8
         filter = (self.info['x']) | ((self.info['t']) & (self.info['track'] >0))
         idx = np.random.choice(np.where(filter)[0])
@@ -198,7 +198,7 @@ class Turn_Left(Base):
         # TODO check if it is time to reset 
         if action is not None:
             self.new = False
-        s,r,d,_ = super(Turn_Left,self).step(action)
+        s,r,d,_ = super(Turn_left,self).step(action)
         if self.goal_id in self._current_nodes:
             d = True
         return s,r,d,_

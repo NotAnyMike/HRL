@@ -19,20 +19,29 @@ def get_train_args():
     :return: A namedtuple with arguments
     """
     parser = argparse.ArgumentParser(
-        description='This will parse the argument and pass them as parameters to th emian experiment function')
+        description='This will parse the argument and pass them \
+                as parameters to th emian experiment function')
 
     parser.add_argument('--env', type=str, 
             help="The name of the class of the environment to run on")
+    parser.add_argument('--tag', type=str, 
+            help="A tag to identify the experiment easier")
     parser.add_argument('--not_save', action='store_true', 
             help="True means not saving the experiment")
     parser.add_argument('--folder', type=str, 
-            help="The folder where the experiment will be save.Defautl is 'experiments'")
+            help="The folder where the experiment will be save.Defautl \
+                    is 'experiments'")
     parser.add_argument('--save_interval', type=int,
-            help="The model will be saved every number of steps specified here, default: 0")
+            help="The model will be saved every number of steps  \
+                    specified here, default: 10000")
     parser.add_argument('--train_steps', type=int,
-            help="The total number of steps to train for. Default: 50000")
+            help="The total number of steps to train for.  \
+                    Default: 1m")
     parser.add_argument('--n', '-n', type=str,
-            help="The number of steps from where to start counting the next steps. Default: 0")
+            help="The number of steps from where to start counting \
+                    the next steps. Default: 0")
+    parser.add_argument('--env_num', type=int,
+            help="The number of environements to use")
     args = parser.parse_args()
 
     args = vars(args)
