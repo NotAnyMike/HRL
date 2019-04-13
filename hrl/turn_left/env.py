@@ -5,7 +5,7 @@ from gym.envs.box2d import CarRacing
 from gym.envs.box2d.car_racing import play, TILE_NAME, default_reward_callback
 
 class Base(CarRacing):
-    def __init__(self, reward_fn=default_reward_callback):
+    def __init__(self, reward_fn=default_reward_callback,max_episode_reward=1):
         super(Base,self).__init__(
                 allow_reverse=False, 
                 grayscale=1,
@@ -17,7 +17,7 @@ class Base(CarRacing):
                 num_lanes_changes=4,
                 max_time_out=2,
                 frames_per_state=4,
-                max_episode_reward=10,
+                max_episode_reward=max_episode_reward,
                 reward_fn=reward_fn,
                 )
 
@@ -60,7 +60,7 @@ class Turn_Left(Base):
                 if tile.id in predictions_id:
                     self.env.last_touch_with_track = self.env.t
 
-        super(Turn_Left,self).__init__(reward_fn=reward_fn)
+        super(Turn_Left,self).__init__(reward_fn=reward_fn,max_episode_reward=10)
         self.goal_id = None
         self.new = True
 

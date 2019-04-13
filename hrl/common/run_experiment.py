@@ -1,4 +1,5 @@
 import os
+import shutil
 from pdb import set_trace
 from copy import deepcopy
 
@@ -39,6 +40,9 @@ def run_experiment(
     # Get env
     env = getattr(environments, env)
     env = DummyVecEnv([env])
+
+    if os.path.exists('to_delete'):
+        shutil.rmtree('to_delete')
     
     # Check if folder exists and is a valid name
     if not not_save:
@@ -123,15 +127,28 @@ def run_experiment(
     del args
 
     print("\n############ STARTING TRAINING ###########\n")
-    with tqdm.tqdm(total=train_steps, leave=True) as bar:
-        callback.set_bars(bar)
-        model.learn(
-                total_timesteps=train_steps,
-                callback=callback,
-                )
+    try:
+        with tqdm.tqdm(total=train_steps, leave=True) as bar:
+            callback.set_bars(bar)
+            model.learn(
+                    total_timesteps=train_steps,
+                    callback=callback,
+                    )
 
-    if not not_save:
-        model.save(experiment_folder+"/weights_final")
+        if not not_save:
+            model.save(experiment_folder+"/weights_final")
+
+    except KeyboardInterrupt:
+        if input("Do you want to delete this experiment? (Yes/n) ") == "Yes":
+            df = pd.read_csv(experiment_csv, index_col=0)
+            df.drop(df.index[id],inplace=True)
+            df.to_csv(experiment_csv)
+
+            os.rename(experiment_folder, 'to_delete/')
+        else:
+            if not not_save:
+                model.save(experiment_folder+"/weights_final")
+
 
 class Show_hide:
     def __init__(self,model,not_save,experiment_folder="experiments/"):
@@ -180,14 +197,18 @@ class Callback:
                 self.last_step_saved = current_step
                 local_vars['self'].save(self.experiment_folder + '/weights_'+str(current_step))
 
-        #set_trace()
+        # Log actions taken
+        self.logger.log_histogram('episode/actions', local_vars['actions'], current_step)
+
+        # Reward also because the normal logger does not log every episode
+        #self.logger.log_value('episode/ep_reward', local_vars['true_reward'], current_step)
+
+        # Log num steps
+        #self.logger.log_value('episode/ep_steps', local_vars['steps'], current_step)
 
         # TODO
-        # Reward also because the normal logger does not log every episode
         # Log speed
         # Log angle
-        # Log actions taken
-        # Log num steps
 
         self.last_step = current_step
 
