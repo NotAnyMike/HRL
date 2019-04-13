@@ -9,7 +9,7 @@ def str2bool(v):
     else:
         raise argparse.ArgumentTypeError('Boolean value expected.')
 
-def get_args():
+def get_train_args():
     """ 
     Returns a namedtuple with arguments extracted from the command line.
     No default values are specified here to avoid double specification in
@@ -33,6 +33,37 @@ def get_args():
             help="The total number of steps to train for. Default: 50000")
     parser.add_argument('--n', '-n', type=str,
             help="The number of steps from where to start counting the next steps. Default: 0")
+    args = parser.parse_args()
+
+    args = vars(args)
+    args = dict((k,v) for k,v in args.items() if v is not None)
+    
+    return args
+
+def get_load_args():
+    """ 
+    Returns a namedtuple with arguments extracted from the command line.
+    No default values are specified here to avoid double specification in
+    run_experiment function. At the end no matter how the code gets executed
+    run_experiment will always be run.
+
+    :return: A namedtuple with arguments
+    """
+    parser = argparse.ArgumentParser(
+        description='This will parse the argument used in \
+                loading a model and pass them as parameters to the loader function')
+
+    parser.add_argument('--env', type=str, 
+            help="The name of the class of the environment to run on, if not \
+            specified Base is used")
+    parser.add_argument('--folder', '-f', type=str, 
+            help="The folder of the experiments, by default it is 'experiments'")
+    parser.add_argument('--experiment', '-e', type=str, required=True,
+            help="The name of the folder of the experiment, the name of the \
+            experiment, for example '2_base'")
+    parser.add_argument('--weights', '-w', type=str,
+            help="The name of the weights to load, If not specified we run the \
+            last one or 'weights_final'")
     args = parser.parse_args()
 
     args = vars(args)

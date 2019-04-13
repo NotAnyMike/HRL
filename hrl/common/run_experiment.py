@@ -13,8 +13,8 @@ from stable_baselines.common.vec_env import SubprocVecEnv
 from stable_baselines import PPO2
 from pyglet.window import key
 
-from hrl.common.arg_extractor import get_args
-from hrl.turn_left import env as environments
+from hrl.common.arg_extractor import get_train_args
+from hrl.envs import env as environments
 
 def run_experiment(
         not_save=False, 
@@ -214,7 +214,7 @@ class Callback:
 
 if __name__ == '__main__':
     # Run arg parser
-    args = get_args()
+    args = get_train_args()
 
     # Run run experiment
     run_experiment(**args)
