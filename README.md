@@ -27,3 +27,16 @@ The function `run_experiment` takes several different arguments, here it is a ta
 | `save` | bool | True | Whether or not save and log the experiment |
 | `folder` | str | 'experiments' | The name of the folder where to save everything, cannot be empty |
 
+### Using `run_model`
+
+The only important argument to give is the name of the experiment, e.g. `-e 5`, that will run the last saved weights with the base environemnt.
+
+---
+
+## IDEAS
+
+### Regarding the baseline
+
+To improve it try:
+- [ ] Time out reduce to 1 or less
+- [ ] Max reward per episode to 5, in order to make it faster, maybe a number betwen 1 and 5 is better
