@@ -57,6 +57,7 @@ class Turn_left(Base):
             else:
 
                 reward,done = env.check_timeout(reward,done)
+                reward,done = env.check_unvisited_tiles(reward,done)
                 
                 if not done and len(list( set(predictions_id) & set(\
                         np.where(not_visited & (right_old|left_old))[0]))) > 0:
@@ -74,14 +75,15 @@ class Turn_left(Base):
                     reward += 1 / factor
 
             # Cliping reward per episode
-            episode = np.clip(
+            full_reward = reward
+            reward = np.clip(
                     reward, env.min_step_reward, env.max_step_reward)
 
             env.info['visited'][left_old | right_old] = True
             env.info['count_right_delay'] = env.info['count_right']
             env.info['count_left_delay']  = env.info['count_left']
             
-            return reward,done
+            return reward,full_reward,done
 
         super(Turn_left,self).__init__(
                 reward_fn=reward_fn,
