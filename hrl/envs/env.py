@@ -13,56 +13,72 @@ class Base(CarRacing):
                 verbose=0,
                 discretize_actions="hard",
                 num_tracks=2,
-                num_lanes=1,
-                num_lanes_changes=4,
-                max_time_out=2,
+                num_lanes=2,
+                num_lanes_changes=0,
+                num_obstacles=100,
+                max_time_out=1.0,
                 frames_per_state=4,
                 max_episode_reward=max_episode_reward,
                 reward_fn=reward_fn,
+                random_obstacle_x_position=False,
+                random_obstacle_shape=False,
                 )
 
 class Turn_left(Base):
     def __init__(self):
-        def reward_fn(tile,obj,begin,local_vars,global_vars):
-            # Substracting value of obstacle
-            self = local_vars['self']
-            predictions_id = [id for l in self.env._next_nodes for id in l.keys() ]
-            if begin:
+        def reward_fn(env):
+            reward = -0.1
+            done = False
 
-                if tile.typename == TILE_NAME:
-                    self.env.add_current_tile(tile.id, tile.lane)
-                obj.tiles.add(tile)
+            predictions_id = [id for l in env._next_nodes for id in l.keys() ]
+            right_old = env.info['count_right_delay'] > 0
+            left_old  = env.info['count_left_delay']  > 0
+            not_visited = env.info['visited'] == False
+            right = env.info['count_right'] > 0
+            left  = env.info['count_left']  > 0
 
-                # Checking if it was visited before
-                #if len(self.env._next_nodes) > 0 and tile.id in self.env._next_nodes[0]:
-                if tile.id in predictions_id and not tile.road_visited:
-                    tile.road_visited = True
-                    if self.env.goal_id == tile.id:
-                        reward_episode = 10
-                        d = True
-                    #elif action is not None and len(self._current_nodes) == 0:
-                        ## in case it is outside the track --> not working
-                        #d = True
-                        #r = -1000
-                    else:
-                        reward_episode = 1
+            # TODO take into account the change of the lane
 
-                    # Cliping reward per episode
-                    reward_episode = np.clip(
-                            reward_episode, self.env.min_episode_reward, self.env.max_episode_reward)
-                    self.env.reward += reward_episode
-                    self.env.tile_visited_count += 1
-            else:
-                obj.tiles.remove(tile)
-                if self.env.new == False and not local_vars['contact'].touching:
-                    self.env.remove_current_tile(tile.id, tile.lane)
-                # Registering last contact with track
-                if tile.id in predictions_id:
-                    self.env.last_touch_with_track = self.env.t
+            if env.goal_id in np.where(right_old|left_old)[0]:
+                reward += 10
+                done = True
+            elif (left|right).sum() == 0:
+                # in case it is outside the track --> not working
+                done = True
+                reward += -100
+            elif env.t - env.last_touch_with_track > env.max_time_out and \
+                    env.max_time_out > 0.0:
+                # if too many seconds outside the track
+                done = True
+                if env.verbose > 0:
+                    print("done by time")
+                reward += -100
+            elif len(list( set(predictions_id) & set(\
+                    np.where(not_visited & (right_old|left_old))[0]))) > 0:
+                reward += 1
+
+            # Cliping reward per episode
+            episode = np.clip(
+                    reward, env.min_episode_reward, env.max_episode_reward)
+
+            env.info['visited'][left_old | right_old] = True
+            env.info['count_right_delay'] = env.info['count_right']
+            env.info['count_left_delay']  = env.info['count_left']
+            
+            return reward,done
 
         super(Turn_left,self).__init__(reward_fn=reward_fn,max_episode_reward=10)
         self.goal_id = None
         self.new = True
+
+    def update_contact_with_track(self):
+        not_visited = self.info['visited'] == False
+        right = self.info['count_right'] > 0
+        left  = self.info['count_left']  > 0
+        predictions_id = [id for l in self._next_nodes for id in l.keys() ]
+        if len(list( set(predictions_id) & set(\
+                np.where(right|left)[0]))) > 0:
+            super(Turn_left,self).update_contact_with_track()
 
     def _weak_reset(self):
         """
@@ -194,14 +210,11 @@ class Turn_left(Base):
     def _check_predictions(self):
         pass
 
-    def step(self,action):
-        # TODO check if it is time to reset 
-        if action is not None:
-            self.new = False
-        s,r,d,_ = super(Turn_left,self).step(action)
-        if self.goal_id in self._current_nodes:
-            d = True
-        return s,r,d,_
+    #def step(self,action):
+        #s,r,d,_ = super(Turn_left,self).step(action)
+        #if self.goal_id in self._current_nodes:
+            #d = True
+        #return s,r,d,_
 
     def remove_current_tile(self, id, lane):
         if id in self._current_nodes:
@@ -211,5 +224,6 @@ class Turn_left(Base):
                 del self._current_nodes[id]
 
 if __name__=='__main__':
-    env = Base()
+    #env = Base()
+    env = Turn_left()
     play(env)

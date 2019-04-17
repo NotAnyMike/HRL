@@ -86,7 +86,14 @@ def run_experiment(
         experiment_folder = None
 
     if weights is not None:
-        model = PPO2.load(weights)
+        model = PPO2.load(
+                weights,
+                verbose=0,
+                tensorboard_log=logs_folder,
+                max_grad_norm=100,
+                n_steps=200,
+                policy_kwargs={'data_format':'NCHW'},
+                )
         model.set_env(env)
     else:
         model = PPO2(
