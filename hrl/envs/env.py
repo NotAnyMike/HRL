@@ -2,10 +2,10 @@ import numpy as np
 from pdb import set_trace
 
 from gym.envs.box2d import CarRacing
-from gym.envs.box2d.car_racing import play, TILE_NAME, default_reward_callback
+from gym.envs.box2d.car_racing import play, TILE_NAME, default_reward_callback, SOFT_NEG_REWARD, HARD_NEG_REWARD
 
 class Base(CarRacing):
-    def __init__(self, reward_fn=default_reward_callback,max_episode_reward=1):
+    def __init__(self, reward_fn=default_reward_callback,max_step_reward=1):
         super(Base,self).__init__(
                 allow_reverse=False, 
                 grayscale=1,
@@ -18,7 +18,7 @@ class Base(CarRacing):
                 num_obstacles=100,
                 max_time_out=1.0,
                 frames_per_state=4,
-                max_episode_reward=max_episode_reward,
+                max_step_reward=max_step_reward,
                 reward_fn=reward_fn,
                 random_obstacle_x_position=False,
                 random_obstacle_shape=False,
@@ -27,7 +27,7 @@ class Base(CarRacing):
 class Turn_left(Base):
     def __init__(self):
         def reward_fn(env):
-            reward = -0.1
+            reward = -SOFT_NEG_REWARD
             done = False
 
             predictions_id = [id for l in env._next_nodes for id in l.keys() ]
@@ -36,8 +36,9 @@ class Turn_left(Base):
             not_visited = env.info['visited'] == False
             right = env.info['count_right'] > 0
             left  = env.info['count_left']  > 0
+            track0 = env.info['track'] == 0
+            track1 = env.info['track'] == 1
 
-            # TODO take into account the change of the lane
 
             if env.goal_id in np.where(right_old|left_old)[0]:
                 reward += 10
@@ -45,21 +46,29 @@ class Turn_left(Base):
             elif (left|right).sum() == 0:
                 # in case it is outside the track --> not working
                 done = True
-                reward += -100
-            elif env.t - env.last_touch_with_track > env.max_time_out and \
-                    env.max_time_out > 0.0:
-                # if too many seconds outside the track
-                done = True
-                if env.verbose > 0:
-                    print("done by time")
-                reward += -100
-            elif len(list( set(predictions_id) & set(\
-                    np.where(not_visited & (right_old|left_old))[0]))) > 0:
-                reward += 1
+                reward -= HARD_NEG_REWARD
+            else:
+
+                reward,done = env.check_timeout(reward,done)
+                
+                if not done and len(list( set(predictions_id) & set(\
+                        np.where(not_visited & (right_old|left_old))[0]))) > 0:
+        
+                    # To allow changes of lane in intersections without lossing points
+                    if (left_old & right_old & track0).sum() > 0 and (left_old & right_old & track1).sum() > 0:
+                        factor = 2
+                    elif (left_old & right_old & track1).sum() > 0 and (((left_old | right_old) & track0).sum() == 0) :
+                        factor = 2
+                    elif (left_old & right_old & track0).sum() > 0 and (((left_old | right_old) & track1).sum() == 0) :
+                        factor = 2
+                    else:
+                        factor = 1 
+                        
+                    reward += 1 / factor
 
             # Cliping reward per episode
             episode = np.clip(
-                    reward, env.min_episode_reward, env.max_episode_reward)
+                    reward, env.min_step_reward, env.max_step_reward)
 
             env.info['visited'][left_old | right_old] = True
             env.info['count_right_delay'] = env.info['count_right']
@@ -67,7 +76,7 @@ class Turn_left(Base):
             
             return reward,done
 
-        super(Turn_left,self).__init__(reward_fn=reward_fn,max_episode_reward=10)
+        super(Turn_left,self).__init__(reward_fn=reward_fn,max_step_reward=10)
         self.goal_id = None
         self.new = True
 
