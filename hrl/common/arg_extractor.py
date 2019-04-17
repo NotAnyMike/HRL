@@ -84,3 +84,15 @@ def get_load_args():
     args = dict((k,v) for k,v in args.items() if v is not None)
     
     return args
+
+def get_env_args():
+    parser = argparse.ArgumentParser(
+        description='This will parse the argument used in \
+                running a environment in play mode')
+
+    parser.add_argument('--env', '-e', type=str, default="Base",
+            help="The name of the class of the environment to run on, if not \
+            specified Base is used")
+    args = parser.parse_args()
+
+    return args

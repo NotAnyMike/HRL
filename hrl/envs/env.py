@@ -4,8 +4,15 @@ from pdb import set_trace
 from gym.envs.box2d import CarRacing
 from gym.envs.box2d.car_racing import play, TILE_NAME, default_reward_callback, SOFT_NEG_REWARD, HARD_NEG_REWARD
 
+from hrl.common.arg_extractor import get_env_args
+from hrl.envs import env as environments
+
 class Base(CarRacing):
-    def __init__(self, reward_fn=default_reward_callback,max_step_reward=1):
+    def __init__(self, 
+            reward_fn=default_reward_callback,
+            max_time_out=2.0,
+            max_step_reward=1,
+            ):
         super(Base,self).__init__(
                 allow_reverse=False, 
                 grayscale=1,
@@ -16,7 +23,7 @@ class Base(CarRacing):
                 num_lanes=2,
                 num_lanes_changes=0,
                 num_obstacles=100,
-                max_time_out=1.0,
+                max_time_out=max_time_out,
                 frames_per_state=4,
                 max_step_reward=max_step_reward,
                 reward_fn=reward_fn,
@@ -76,7 +83,11 @@ class Turn_left(Base):
             
             return reward,done
 
-        super(Turn_left,self).__init__(reward_fn=reward_fn,max_step_reward=10)
+        super(Turn_left,self).__init__(
+                reward_fn=reward_fn,
+                max_time_out=1.0,
+                max_step_reward=10,
+                )
         self.goal_id = None
         self.new = True
 
@@ -233,6 +244,6 @@ class Turn_left(Base):
                 del self._current_nodes[id]
 
 if __name__=='__main__':
-    #env = Base()
-    env = Turn_left()
+    args = get_env_args()
+    env = getattr(environments, args.env)()
     play(env)
