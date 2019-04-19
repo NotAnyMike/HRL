@@ -31,7 +31,7 @@ class Base(CarRacing):
                 random_obstacle_shape=False,
                 )
 
-class Turn_left(Base):
+class Turn(Base):
     def __init__(self):
         def reward_fn(env):
             reward = -SOFT_NEG_REWARD
@@ -59,6 +59,7 @@ class Turn_left(Base):
                 reward,done = env.check_timeout(reward,done)
                 reward,done = env.check_unvisited_tiles(reward,done)
                 
+                # if still in the prediction set
                 if not done and len(list( set(predictions_id) & set(\
                         np.where(not_visited & (right_old|left_old))[0]))) > 0:
         
@@ -85,7 +86,7 @@ class Turn_left(Base):
             
             return reward,full_reward,done
 
-        super(Turn_left,self).__init__(
+        super(Turn,self).__init__(
                 reward_fn=reward_fn,
                 max_time_out=1.0,
                 max_step_reward=10,
@@ -100,7 +101,7 @@ class Turn_left(Base):
         predictions_id = [id for l in self._next_nodes for id in l.keys() ]
         if len(list( set(predictions_id) & set(\
                 np.where(right|left)[0]))) > 0:
-            super(Turn_left,self).update_contact_with_track()
+            super(Turn,self).update_contact_with_track()
 
     def _weak_reset(self):
         """
@@ -109,7 +110,7 @@ class Turn_left(Base):
         This is in order to allow several retries to reset 
         the environment
         """
-        to_return = super(Turn_left,self).reset()
+        to_return = super(Turn,self).reset()
         tiles_before = 8
         filter = (self.info['x']) | ((self.info['t']) & (self.info['track'] >0))
         idx = np.random.choice(np.where(filter)[0])
@@ -203,11 +204,13 @@ class Turn_left(Base):
         #    self._next_nodes.append({i:{0:direction,1:direction}})
 
         # The direction of left lane
-        flow = -1 if avg_second_track > avg_main_track else 1
+        flow = self._flow
         if current_track == 0: flow *= -1
-        if inter['left'] is not None:
+        else:
+            flow *= (-1 if avg_second_track > avg_main_track else 1)
+        if inter[self._direction] is not None:
             for i in range(tiles_before):
-                self._next_nodes.append({inter['left']+flow*(i):{0:direction,1:direction}})
+                self._next_nodes.append({inter[self._direction]+flow*(i):{0:direction,1:direction}})
         ###########
 
         self.goal_id = list(self._next_nodes[-1].keys())[0]
@@ -233,7 +236,7 @@ class Turn_left(Base):
         pass
 
     #def step(self,action):
-        #s,r,d,_ = super(Turn_left,self).step(action)
+        #s,r,d,_ = super(Turn,self).step(action)
         #if self.goal_id in self._current_nodes:
             #d = True
         #return s,r,d,_
@@ -244,6 +247,19 @@ class Turn_left(Base):
                 del self._current_nodes[id][lane]
             else:
                 del self._current_nodes[id]
+
+class Turn_left(Turn):
+    def __init__(self):
+        super(Turn_left,self).__init__()
+        self._flow = 1
+        self._direction = 'left'
+
+class Turn_right(Turn):
+    def __init__(self):
+        super(Turn_right,self).__init__()
+        self._flow = -1
+        self._direction = 'right'
+    
 
 if __name__=='__main__':
     args = get_env_args()
