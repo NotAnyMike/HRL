@@ -92,7 +92,7 @@ def run_experiment(
                 tensorboard_log=logs_folder,
                 max_grad_norm=100,
                 n_steps=200,
-                policy_kwargs={'data_format':'NCHW'},
+                #policy_kwargs={'data_format':'NCHW'},
                 )
         model.set_env(env)
     else:
@@ -103,7 +103,7 @@ def run_experiment(
                     tensorboard_log=logs_folder,
                     max_grad_norm=100,
                     n_steps=200,
-                    policy_kwargs={'data_format':'NCHW'},
+                    #policy_kwargs={'data_format':'NCHW'},
                 )
 
     # Set key functions

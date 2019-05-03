@@ -1,8 +1,9 @@
 import numpy as np
 from pdb import set_trace
+from pyglet import gl
 
 from gym.envs.box2d import CarRacing
-from gym.envs.box2d.car_racing import play, TILE_NAME, default_reward_callback, SOFT_NEG_REWARD, HARD_NEG_REWARD
+from gym.envs.box2d.car_racing import play, TILE_NAME, default_reward_callback, SOFT_NEG_REWARD, HARD_NEG_REWARD, WINDOW_W, WINDOW_H
 
 from hrl.common.arg_extractor import get_env_args
 from hrl.envs import env as environments
@@ -95,10 +96,14 @@ class Turn(Base):
         self.new = True
 
     def update_contact_with_track(self):
+        # Only updating it if still in prediction
+
         not_visited = self.info['visited'] == False
         right = self.info['count_right'] > 0
         left  = self.info['count_left']  > 0
         predictions_id = [id for l in self._next_nodes for id in l.keys() ]
+
+        # Intersection of the prediction and the set that you are currently in
         if len(list( set(predictions_id) & set(\
                 np.where(right|left)[0]))) > 0:
             super(Turn,self).update_contact_with_track()
@@ -203,7 +208,7 @@ class Turn(Base):
         #for i in ids:
         #    self._next_nodes.append({i:{0:direction,1:direction}})
 
-        # The direction of left lane
+        # The direction of lane
         flow = self._flow
         if current_track == 0: flow *= -1
         else:
@@ -259,7 +264,38 @@ class Turn_right(Turn):
         super(Turn_right,self).__init__()
         self._flow = -1
         self._direction = 'right'
-    
+
+class Turn_high(Turn):
+    def __init__(self):
+        super(Turn_high,self).__init__()
+        self._direction = 'right' if np.random.uniform() >= 0.5 else 'left'
+        self._flow = -1 if self._direction == 'right' else 1
+
+    def reset(self):
+        self._direction = 'right' if np.random.uniform() >= 0.5 else 'left'
+        self._flow = -1 if self._direction == 'right' else 1
+        super(Turn_high,self).reset()
+
+    def _render_left(self):
+        d = 1 if self._direction == 'right' else 0
+        f = self._flow
+
+        gl.glBegin(gl.GL_TRIANGLES)
+        gl.glColor4f(0.7,0,0,1)
+        gl.glVertex3f(WINDOW_W*d+f*20, WINDOW_H-80,0)
+        gl.glVertex3f(WINDOW_W*d+f*100,WINDOW_H-80-40,0)
+        gl.glVertex3f(WINDOW_W*d+f*100,WINDOW_H-80+40,0)
+        gl.glEnd()
+        gl.glBegin(gl.GL_QUADS)
+        gl.glColor4f(0.7,0,0,1)
+        gl.glVertex3f(WINDOW_W*d+f*100,WINDOW_H-80+15,0)
+        gl.glVertex3f(WINDOW_W*d+f*150,WINDOW_H-80+15,0)
+        gl.glVertex3f(WINDOW_W*d+f*150,WINDOW_H-80-15,0)
+        gl.glVertex3f(WINDOW_W*d+f*100,WINDOW_H-80-15,0)
+        gl.glEnd()
+
+    def _render_additional_objects(self):
+        self._render_left()
 
 if __name__=='__main__':
     args = get_env_args()
