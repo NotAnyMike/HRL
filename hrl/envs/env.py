@@ -3,6 +3,7 @@ from pdb import set_trace
 from pyglet import gl
 
 from gym.envs.box2d import CarRacing
+from gym import spaces
 from gym.envs.box2d.car_racing import play, TILE_NAME, default_reward_callback, SOFT_NEG_REWARD, HARD_NEG_REWARD, WINDOW_W, WINDOW_H
 
 from hrl.common.arg_extractor import get_env_args
@@ -47,16 +48,15 @@ class Turn(Base):
             track0 = env.info['track'] == 0
             track1 = env.info['track'] == 1
 
-
             if env.goal_id in np.where(right_old|left_old)[0]:
+                # If in objective
                 reward += 10
                 done = True
             elif (left|right).sum() == 0:
-                # in case it is outside the track --> not working
+                # In case it is outside the track 
                 done = True
                 reward -= HARD_NEG_REWARD
             else:
-
                 reward,done = env.check_timeout(reward,done)
                 reward,done = env.check_unvisited_tiles(reward,done)
                 
@@ -268,24 +268,55 @@ class Turn_right(Turn):
 class Turn_high(Turn):
     def __init__(self):
         super(Turn_high,self).__init__()
+
         self._direction = 'right' if np.random.uniform() >= 0.5 else 'left'
         self._flow = -1 if self._direction == 'right' else 1
+
+        self.actions = {}
+        self.actions['left']  = Left_policy('weights',self)
+        self.actions['right'] = Left_policy('weights',self)
+
+    def _set_config(self, **kwargs):
+        super(Turn_high, self)._set_config(**kwargs)
+        self.discretize_actions = 'left-right'
+        self.action_space = spaces.Discrete(2)
 
     def reset(self):
         self._direction = 'right' if np.random.uniform() >= 0.5 else 'left'
         self._flow = -1 if self._direction == 'right' else 1
         super(Turn_high,self).reset()
 
+    def step(self,action):
+        # transform action
+        action = self._transform_high_lvl_action(action)
+
+        # execute transformed action
+        state, reward, done, _ = action(self.state)
+    
+    def raw_step(self,action):
+        # Normal step 
+        super(Turn_high,self).step(action)
+
+    def _transform_high_lvl_action(self,action):
+        if action == 0:
+            action = self.actions['left']
+        elif action == 1:
+            action = self.actions['right']
+        return action
+
     def _render_left(self):
         d = 1 if self._direction == 'right' else 0
         f = self._flow
 
+        # Arrow
         gl.glBegin(gl.GL_TRIANGLES)
         gl.glColor4f(0.7,0,0,1)
         gl.glVertex3f(WINDOW_W*d+f*20, WINDOW_H-80,0)
         gl.glVertex3f(WINDOW_W*d+f*100,WINDOW_H-80-40,0)
         gl.glVertex3f(WINDOW_W*d+f*100,WINDOW_H-80+40,0)
         gl.glEnd()
+
+        # Body
         gl.glBegin(gl.GL_QUADS)
         gl.glColor4f(0.7,0,0,1)
         gl.glVertex3f(WINDOW_W*d+f*100,WINDOW_H-80+15,0)
