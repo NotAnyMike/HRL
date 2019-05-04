@@ -10,27 +10,31 @@ from hrl.common.arg_extractor import get_load_args
 from hrl.envs import env as environments
 
 def load_model(
-        experiment,
+        experiment=None,
         folder='experiments', 
         weights=None,
         env='Base',
+        full_path=None,
         ):
 
-    if folder[-1] in '\\/':
-        # remove \ from the end
-        folder = folder[:-1]
+    if full_path == None:
+        if folder[-1] in '\\/':
+            # remove \ from the end
+            folder = folder[:-1]
 
-    if weights is None:
-        # Check what is the last weight
-        weights_lst = [s for s in os.listdir('/'.join([folder,experiment])) if "weights_" in s]
-        weights_lst = [s.replace('weights_','').replace('.pkl','') for s in weights_lst]
-        if 'final' in weights_lst:
-            weights = 'weights_final.pkl'
-        else:
-            weights_lst = [int(s) for s in weights_lst]
-            weights = 'weights_' + str(max(weights_lst)) + '.pkl'
-    
-    weights_loc = '/'.join([folder,experiment,weights])
+        if weights is None:
+            # Check what is the last weight
+            weights_lst = [s for s in os.listdir('/'.join([folder,experiment])) if "weights_" in s]
+            weights_lst = [s.replace('weights_','').replace('.pkl','') for s in weights_lst]
+            if 'final' in weights_lst:
+                weights = 'weights_final.pkl'
+            else:
+                weights_lst = [int(s) for s in weights_lst]
+                weights = 'weights_' + str(max(weights_lst)) + '.pkl'
+        
+        weights_loc = '/'.join([folder,experiment,weights])
+    else:
+        weights_loc = full_path
 
     # Get env
     env = getattr(environments, env)

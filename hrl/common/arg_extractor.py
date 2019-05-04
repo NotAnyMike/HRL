@@ -72,16 +72,24 @@ def get_load_args():
             specified Base is used")
     parser.add_argument('--folder', '-f', type=str, 
             help="The folder of the experiments, by default it is 'experiments'")
-    parser.add_argument('--experiment', '-e', type=str, required=True,
+    parser.add_argument('--experiment', '-e', type=str,
             help="The name of the folder of the experiment, the name of the \
             experiment, for example '2_base'")
     parser.add_argument('--weights', '-w', type=str,
             help="The name of the weights to load, If not specified we run the \
             last one or 'weights_final'")
+    parser.add_argument('--full_path', type=str,
+            help="The full path of the weights, can be relative or absolute, \
+            if this is given then -f,-e,-w are ignored")
     args = parser.parse_args()
 
     args = vars(args)
     args = dict((k,v) for k,v in args.items() if v is not None)
+
+    if "full_path" in args:
+        if 'folder' in args:     del args['folder']
+        if 'experiment' in args: del args['experiment']
+        if 'weights' in args:    del args['weights']
     
     return args
 
