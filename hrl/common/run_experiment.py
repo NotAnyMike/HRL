@@ -8,10 +8,9 @@ import numpy as np
 import tqdm
 from tensorboard_logger import Logger
 from stable_baselines.common.policies import CnnPolicy
-from stable_baselines.common.vec_env import DummyVecEnv
 from stable_baselines.common.vec_env import SubprocVecEnv
 from stable_baselines import PPO2
-from pyglet.window import key
+#from pyglet.window import key
 
 from hrl.common.arg_extractor import get_train_args
 from hrl.envs import env as environments
@@ -38,9 +37,9 @@ def run_experiment(
 
     # Get env
     env = getattr(environments, env)
-    env = DummyVecEnv([env]*env_num)
+    env = SubprocVecEnv([lambda : env() for i in range(env_num)])
 
-    args['env_config'] = str(env.envs[0]._org_config)
+    args['env_config'] = str(env.env_method("get_org_config")[0])
 
     if os.path.exists('to_delete'):
         shutil.rmtree('to_delete')
@@ -108,8 +107,9 @@ def run_experiment(
 
     # Set key functions
     show_hide = Show_hide(model,not_save,experiment_folder)
-    for tmp_env in env.envs:
-        tmp_env.set_press_fn(show_hide)
+    #env.env_method("set_press_fn",show_hide)
+    #for tmp_env in env.envs:
+        #tmp_env.set_press_fn(show_hide)
 
     # set bar
     callback = Callback(
@@ -170,8 +170,8 @@ class Show_hide:
         self.not_save = not_save
 
     def __call__(self,k, mod):
-        if k==key.S: # S from show
-            self.model.render = not self.model.render
+        #if k==key.S: # S from show
+            #self.model.render = not self.model.render
         if not self.not_save:
             if k==key.T: # T from T screnshot
                 self.model.env.envs[0].screenshot(self.experiment_folder)
