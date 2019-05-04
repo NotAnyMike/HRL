@@ -8,6 +8,8 @@ from gym.envs.box2d.car_racing import play, TILE_NAME, default_reward_callback, 
 
 from hrl.common.arg_extractor import get_env_args
 from hrl.envs import env as environments
+from hrl.policies.policy import Turn_left as Left_policy
+from hrl.policies.policy import Turn_right as Right_policy
 
 class Base(CarRacing):
     def __init__(self, 
@@ -33,7 +35,7 @@ class Base(CarRacing):
                 random_obstacle_shape=False,
                 )
 
-class Turn(Base):
+class Turn_side(Base):
     def __init__(self):
         def reward_fn(env):
             reward = -SOFT_NEG_REWARD
@@ -87,7 +89,7 @@ class Turn(Base):
             
             return reward,full_reward,done
 
-        super(Turn,self).__init__(
+        super(Turn_side,self).__init__(
                 reward_fn=reward_fn,
                 max_time_out=1.0,
                 max_step_reward=10,
@@ -106,7 +108,7 @@ class Turn(Base):
         # Intersection of the prediction and the set that you are currently in
         if len(list( set(predictions_id) & set(\
                 np.where(right|left)[0]))) > 0:
-            super(Turn,self).update_contact_with_track()
+            super(Turn_side,self).update_contact_with_track()
 
     def _weak_reset(self):
         """
@@ -115,7 +117,7 @@ class Turn(Base):
         This is in order to allow several retries to reset 
         the environment
         """
-        to_return = super(Turn,self).reset()
+        to_return = super(Turn_side,self).reset()
         tiles_before = 8
         filter = (self.info['x']) | ((self.info['t']) & (self.info['track'] >0))
         idx = np.random.choice(np.where(filter)[0])
@@ -241,7 +243,7 @@ class Turn(Base):
         pass
 
     #def step(self,action):
-        #s,r,d,_ = super(Turn,self).step(action)
+        #s,r,d,_ = super(Turn_side,self).step(action)
         #if self.goal_id in self._current_nodes:
             #d = True
         #return s,r,d,_
@@ -253,38 +255,38 @@ class Turn(Base):
             else:
                 del self._current_nodes[id]
 
-class Turn_left(Turn):
+class Turn_left(Turn_side):
     def __init__(self):
         super(Turn_left,self).__init__()
         self._flow = 1
         self._direction = 'left'
 
-class Turn_right(Turn):
+class Turn_right(Turn_side):
     def __init__(self):
         super(Turn_right,self).__init__()
         self._flow = -1
         self._direction = 'right'
 
-class Turn_high(Turn):
+class Turn(Turn_side):
     def __init__(self):
-        super(Turn_high,self).__init__()
+        super(Turn,self).__init__()
 
         self._direction = 'right' if np.random.uniform() >= 0.5 else 'left'
         self._flow = -1 if self._direction == 'right' else 1
 
         self.actions = {}
         self.actions['left']  = Left_policy('weights',self)
-        self.actions['right'] = Left_policy('weights',self)
+        self.actions['right'] = Right_policy('weights',self)
 
     def _set_config(self, **kwargs):
-        super(Turn_high, self)._set_config(**kwargs)
+        super(Turn, self)._set_config(**kwargs)
         self.discretize_actions = 'left-right'
         self.action_space = spaces.Discrete(2)
 
     def reset(self):
         self._direction = 'right' if np.random.uniform() >= 0.5 else 'left'
         self._flow = -1 if self._direction == 'right' else 1
-        super(Turn_high,self).reset()
+        super(Turn,self).reset()
 
     def step(self,action):
         # transform action
@@ -292,10 +294,12 @@ class Turn_high(Turn):
 
         # execute transformed action
         state, reward, done, _ = action(self.state)
+
+        return state, reward, done, {}
     
     def raw_step(self,action):
         # Normal step 
-        super(Turn_high,self).step(action)
+        return super(Turn,self).step(action)
 
     def _transform_high_lvl_action(self,action):
         if action == 0:
