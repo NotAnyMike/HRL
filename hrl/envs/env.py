@@ -308,7 +308,7 @@ class Turn(Turn_side):
             action = self.actions['right']
         return action
 
-    def _render_left(self):
+    def _render_arrow(self):
         d = 1 if self._direction == 'right' else 0
         f = self._flow
 
@@ -330,7 +330,7 @@ class Turn(Turn_side):
         gl.glEnd()
 
     def _render_additional_objects(self):
-        self._render_left()
+        self._render_arrow()
 
 if __name__=='__main__':
     args = get_env_args()

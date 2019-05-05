@@ -46,8 +46,8 @@ class Policy:
 
 class Turn_left(Policy):
     def __init__(self,env):
-        super(Turn_left, self).__init__("hrl/weights/left/v1.pkl", env)
+        super(Turn_left, self).__init__("hrl/weights/Turn_left/v1.0.pkl", env)
 
 class Turn_right(Policy):
     def __init__(self,env):
-        super(Turn_left, self).__init__("hrl/weights/right/v1.pkl", env)
+        super(Turn_left, self).__init__("hrl/weights/Turn_right/v1.0.pkl", env)
