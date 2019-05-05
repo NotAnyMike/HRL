@@ -10,7 +10,7 @@ from tensorboard_logger import Logger
 from stable_baselines.common.policies import CnnPolicy
 from stable_baselines.common.vec_env import SubprocVecEnv
 from stable_baselines import PPO2
-#from pyglet.window import key
+from pynput.keyboard import Key, Listener, KeyCode
 
 from hrl.common.arg_extractor import get_train_args
 from hrl.envs import env as environments
@@ -28,7 +28,7 @@ def run_experiment(
         description=None,
         weights=None,
         ):
-
+    
     if weights is not None and not os.path.isfile(weights):
         raise ValueError("Weights do not exist")
 
@@ -143,10 +143,31 @@ def run_experiment(
     try:
         with tqdm.tqdm(total=train_steps, leave=True) as bar:
             callback.set_bars(bar)
-            model.learn(
-                    total_timesteps=train_steps,
-                    callback=callback,
-                    )
+
+            COMBINATION = {
+                        KeyCode.from_char('s'),
+                        KeyCode.from_char('a'),
+                        KeyCode.from_char('d'),
+                        KeyCode.from_char('f')}
+            current = set()
+
+            def on_press(key):
+                if key in COMBINATION:
+                    current.add(key)
+                    if all(k in current for k in COMBINATION):
+                        model.render = not model.render
+            def on_release(key):
+                try:
+                    current.remove(key)
+                except KeyError:
+                    pass
+
+            with Listener(on_release=on_release,on_press=on_press) as listener:
+                model.learn(
+                        total_timesteps=train_steps,
+                        callback=callback,
+                        )
+                listener.join()
 
         if not not_save:
             model.save(experiment_folder+"/weights_final")
@@ -163,6 +184,8 @@ def run_experiment(
                 model.save(experiment_folder+"/weights_final")
 
 
+# This is not working so far because multiprocesses have the problem with
+# sharing objects, and the solution is not that simple
 class Show_hide:
     def __init__(self,model,not_save,experiment_folder="experiments/"):
         self.model = model
@@ -170,6 +193,7 @@ class Show_hide:
         self.not_save = not_save
 
     def __call__(self,k, mod):
+        from pyglet.window import key
         #if k==key.S: # S from show
             #self.model.render = not self.model.render
         if not self.not_save:
