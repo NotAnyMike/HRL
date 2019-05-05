@@ -28,6 +28,7 @@ def run_experiment(
         train_steps=int(1e6),
         description=None,
         weights=None,
+        n_steps=200,
         ):
 
     if weights is not None and not os.path.isfile(weights):
@@ -91,7 +92,7 @@ def run_experiment(
                 verbose=0,
                 tensorboard_log=logs_folder,
                 max_grad_norm=100,
-                n_steps=200,
+                n_steps=n_steps,
                 #policy_kwargs={'data_format':'NCHW'},
                 )
         model.set_env(env)
@@ -102,7 +103,7 @@ def run_experiment(
                     verbose=0,
                     tensorboard_log=logs_folder,
                     max_grad_norm=100,
-                    n_steps=200,
+                    n_steps=n_steps,
                     #policy_kwargs={'data_format':'NCHW'},
                 )
 
@@ -172,6 +173,9 @@ class Show_hide:
     def __call__(self,k, mod):
         if k==key.S: # S from show
             self.model.render = not self.model.render
+            for env in self.model.env.envs:
+                env.auto_render = not env.auto_render
+
         if not self.not_save:
             if k==key.T: # T from T screnshot
                 self.model.env.envs[0].screenshot(self.experiment_folder)
@@ -224,6 +228,7 @@ class Callback:
             # Log angle
 
         self.last_step = current_step
+        if current_step >= local_vars['total_timesteps']: return False
 
 if __name__ == '__main__':
     # Run arg parser

@@ -16,6 +16,10 @@ class Base(CarRacing):
             reward_fn=default_reward_callback,
             max_time_out=2.0,
             max_step_reward=1,
+            auto_render=False,
+            high_level=False,
+            *args,
+            **kwargs,
             ):
         super(Base,self).__init__(
                 allow_reverse=False, 
@@ -33,10 +37,14 @@ class Base(CarRacing):
                 reward_fn=reward_fn,
                 random_obstacle_x_position=False,
                 random_obstacle_shape=False,
+                *args,
+                **kwargs,
                 )
+        self.auto_render = auto_render
+        self.high_level = high_level
 
 class Turn_side(Base):
-    def __init__(self):
+    def __init__(self, high_level=False, *args, **kwargs):
         def reward_fn(env):
             reward = -SOFT_NEG_REWARD
             done = False
@@ -93,6 +101,9 @@ class Turn_side(Base):
                 reward_fn=reward_fn,
                 max_time_out=1.0,
                 max_step_reward=10,
+                high_level=high_level, 
+                *args, 
+                **kwargs,
                 )
         self.goal_id = None
         self.new = True
@@ -268,34 +279,38 @@ class Turn_right(Turn_side):
         self._direction = 'right'
 
 class Turn(Turn_side):
-    def __init__(self):
-        super(Turn,self).__init__()
+    def __init__(self,*args,**kwargs):
+        super(Turn,self).__init__(high_level=True,*args,**kwargs)
 
         self._direction = 'right' if np.random.uniform() >= 0.5 else 'left'
         self._flow = -1 if self._direction == 'right' else 1
 
         self.actions = {}
-        self.actions['left']  = Left_policy('weights',self)
-        self.actions['right'] = Right_policy('weights',self)
+        self.actions['left']  = Left_policy(self)
+        self.actions['right'] = Right_policy(self)
 
     def _set_config(self, **kwargs):
         super(Turn, self)._set_config(**kwargs)
-        self.discretize_actions = 'left-right'
+        #self.discretize_actions = 'left-right'
         self.action_space = spaces.Discrete(2)
 
     def reset(self):
         self._direction = 'right' if np.random.uniform() >= 0.5 else 'left'
         self._flow = -1 if self._direction == 'right' else 1
-        super(Turn,self).reset()
+        return super(Turn,self).reset()
 
     def step(self,action):
         # transform action
-        action = self._transform_high_lvl_action(action)
+        #if action is not None: set_trace()
+        if action is None:
+            state, reward, done, info = self.raw_step(None)
+        else:
+            action = self._transform_high_lvl_action(action)
 
-        # execute transformed action
-        state, reward, done, _ = action(self.state)
+            # execute transformed action
+            state, reward, done, info = action(self.state)
 
-        return state, reward, done, {}
+        return state, reward, done, info
     
     def raw_step(self,action):
         # Normal step 
@@ -335,4 +350,5 @@ class Turn(Turn_side):
 if __name__=='__main__':
     args = get_env_args()
     env = getattr(environments, args.env)()
+    if env.high_level: env.auto_render = True
     play(env)

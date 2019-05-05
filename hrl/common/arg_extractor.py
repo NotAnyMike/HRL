@@ -24,6 +24,8 @@ def get_train_args():
 
     parser.add_argument('--env', type=str, 
             help="The name of the class of the environment to run on")
+    parser.add_argument('--n_steps', type=int,
+            help="The number of steps to use in each training step")
     parser.add_argument('--tag', type=str, 
             help="A tag to identify the experiment easier")
     parser.add_argument('--not_save', action='store_true', 

@@ -47,8 +47,8 @@ def load_model(
         weights_loc = '/'.join([folder,experiment,weights])
 
     # Get env
-    env = getattr(environments, env)
-    env = DummyVecEnv([env])
+    env = getattr(environments, env)()
+    env = DummyVecEnv([lambda: env])
 
     model = PPO2.load(weights_loc)
     model.set_env(env)
