@@ -1,4 +1,5 @@
 __pycache__/
 *.swp
+*.egg-info
 
 /experiments/
