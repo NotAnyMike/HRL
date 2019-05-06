@@ -162,12 +162,15 @@ def run_experiment(
                 except KeyError:
                     pass
 
-            with Listener(on_release=on_release,on_press=on_press) as listener:
-                model.learn(
-                        total_timesteps=train_steps,
-                        callback=callback,
-                        )
-                listener.join()
+            listener = Listener(
+                        on_press=on_press,
+                        on_release=on_release)
+            listener.start()
+
+            model.learn(
+                    total_timesteps=train_steps,
+                    callback=callback,
+                    )
 
         if not not_save:
             model.save(experiment_folder+"/weights_final")
