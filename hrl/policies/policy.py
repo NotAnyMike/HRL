@@ -1,12 +1,18 @@
 import numpy as np
+from pdb import set_trace
 
 from stable_baselines import PPO2
+from stable_baselines.common.vec_env import DummyVecEnv
 
 class Policy:
     def __init__(self,weights,env):
         self.model = PPO2.load(weights)
-        setf.model.set_env(env)
-        self.max_steps = 90
+        self.env = env
+
+        vec_env = DummyVecEnv([lambda: env])
+    
+        self.model.set_env(vec_env)
+        self.max_steps = 40
         self.n = 0
 
     def __call__(self,state):
@@ -16,9 +22,11 @@ class Policy:
         self.n = 0
 
         obs = state
-        while not self._done():
-            action, _states = model.predict(obs)
-            obs,rewards,done,info = env.raw_step(action)
+        while self.n == 0 or (not self._done() and not done):
+            action, _states = self.model.predict(obs)
+            obs,rewards,done,info = self.env.raw_step(action)
+            if self.env.auto_render:
+                self.env.render()
 
             action_rwrd += rewards
             self.n += 1
@@ -46,8 +54,8 @@ class Policy:
 
 class Turn_left(Policy):
     def __init__(self,env):
-        super(Turn_left, self).__init__("hrl/weights/left/v1.pkl", env)
+        super(Turn_left, self).__init__("hrl/weights/Turn_left/v1.0.pkl", env)
 
 class Turn_right(Policy):
     def __init__(self,env):
-        super(Turn_left, self).__init__("hrl/weights/right/v1.pkl", env)
+        super(Turn_right, self).__init__("hrl/weights/Turn_right/v1.0.pkl", env)

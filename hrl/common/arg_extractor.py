@@ -24,6 +24,8 @@ def get_train_args():
 
     parser.add_argument('--env', type=str, 
             help="The name of the class of the environment to run on")
+    parser.add_argument('--n_steps', type=int,
+            help="The number of steps to use in each training step")
     parser.add_argument('--tag', type=str, 
             help="A tag to identify the experiment easier")
     parser.add_argument('--not_save', action='store_true', 
@@ -81,12 +83,21 @@ def get_load_args():
     parser.add_argument('--full_path', type=str,
             help="The full path of the weights, can be relative or absolute, \
             if this is given then -f,-e,-w are ignored")
+    parser.add_argument('--policy','-p', type=str,
+            help="The name of the policy to load, it must have a folder in the \
+            hrl/policies folder and one weight inside, the newest will be run,\
+            if this option is given -f,-e,-w,--full_path are ignored")
     args = parser.parse_args()
 
     args = vars(args)
     args = dict((k,v) for k,v in args.items() if v is not None)
 
-    if "full_path" in args:
+    if 'policy' in args:
+        if 'full_policy' in args:del args['full_path']
+        if 'folder' in args:     del args['folder']
+        if 'experiment' in args: del args['experiment']
+        if 'weights' in args:    del args['weights']
+    elif "full_path" in args:
         if 'folder' in args:     del args['folder']
         if 'experiment' in args: del args['experiment']
         if 'weights' in args:    del args['weights']

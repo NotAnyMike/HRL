@@ -2,6 +2,7 @@ from pdb import set_trace
 import glob
 import os
 
+import re
 import numpy as np
 from stable_baselines.common.vec_env import DummyVecEnv
 from stable_baselines import PPO2
@@ -15,9 +16,20 @@ def load_model(
         weights=None,
         env='Base',
         full_path=None,
+        policy=None,
         ):
 
-    if full_path == None:
+    if policy != None:
+        weights_loc = os.path.join("hrl/weights",policy)
+        names = [name for name in os.listdir(weights_loc) if '.pkl' in name] # only pkl
+        versions = [re.match(r'^(?:v)(\d+\.\d+)(?:_?)',i).group(1) for i in names] # capture v#.#_
+        versions = [float(v) for v in versions] # Convert to float
+        max_v = max(versions)
+        w = [n for n in names if re.match(r'^v'+str(max_v),n) != None][0] # Getting max version name
+        weights_loc = os.path.join(weights_loc,str(w))
+    elif full_path != None:
+        weights_loc = full_path
+    else:
         if folder[-1] in '\\/':
             # remove \ from the end
             folder = folder[:-1]
@@ -33,12 +45,11 @@ def load_model(
                 weights = 'weights_' + str(max(weights_lst)) + '.pkl'
         
         weights_loc = '/'.join([folder,experiment,weights])
-    else:
-        weights_loc = full_path
 
     # Get env
-    env = getattr(environments, env)
-    env = DummyVecEnv([env])
+    env = getattr(environments, env)()
+    if env.high_level: env.auto_render = True
+    env = DummyVecEnv([lambda: env])
 
     model = PPO2.load(weights_loc)
     model.set_env(env)
