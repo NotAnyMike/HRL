@@ -40,7 +40,6 @@ class Base(CarRacing):
                 *args,
                 **kwargs,
                 )
-        self.auto_render = auto_render
         self.high_level = high_level
 
 class Turn_side(Base):
@@ -286,8 +285,8 @@ class Turn(Turn_side):
         self._flow = -1 if self._direction == 'right' else 1
 
         self.actions = {}
-        self.actions['left']  = Left_policy(self)
-        self.actions['right'] = Right_policy(self)
+        self.actions['left']  = Left_policy()
+        self.actions['right'] = Right_policy()
 
     def _set_config(self, **kwargs):
         super(Turn, self)._set_config(**kwargs)
@@ -308,7 +307,7 @@ class Turn(Turn_side):
             action = self._transform_high_lvl_action(action)
 
             # execute transformed action
-            state, reward, done, info = action(self.state)
+            state, reward, done, info = action(self,self.state)
 
         return state, reward, done, info
     

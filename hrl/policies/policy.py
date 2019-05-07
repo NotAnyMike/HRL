@@ -5,35 +5,28 @@ from stable_baselines import PPO2
 from stable_baselines.common.vec_env import DummyVecEnv
 
 class Policy:
-    def __init__(self,weights,env):
+    def __init__(self,weights):
         self.model = PPO2.load(weights)
-        self.env = env
-
-        vec_env = DummyVecEnv([lambda: env])
-    
-        self.model.set_env(vec_env)
         self.max_steps = 40
         self.n = 0
 
-    def __call__(self,state):
+    def __call__(self,env,state):
         action_rwrd = 0
         done  = False
         info  = {}
         self.n = 0
 
         obs = state
-        while self.n == 0 or (not self._done() and not done):
+        while self.n == 0 or (not self._done(env) and not done):
             action, _states = self.model.predict(obs)
-            obs,rewards,done,info = self.env.raw_step(action)
-            if self.env.auto_render:
-                self.env.render()
+            obs,rewards,done,info = env.raw_step(action)
 
             action_rwrd += rewards
             self.n += 1
 
         return obs,action_rwrd,done,info
 
-    def _done(self):
+    def _done(self,env):
         # The conditions are
         # 1. After n steps
         # 2. If it is outside the track
@@ -41,8 +34,8 @@ class Policy:
         # 4. If Timeout
         # 3 and 4 are complex, so I am not using them
 
-        right = self.env.info['count_right'] > 0
-        left  = self.env.info['count_left']  > 0
+        right = env.info['count_right'] > 0
+        left  = env.info['count_left']  > 0
 
         done = False
         if self.n >= self.max_steps:
@@ -53,9 +46,9 @@ class Policy:
         return done
 
 class Turn_left(Policy):
-    def __init__(self,env):
-        super(Turn_left, self).__init__("hrl/weights/Turn_left/v1.0.pkl", env)
+    def __init__(self):
+        super(Turn_left, self).__init__("hrl/weights/Turn_left/v1.0.pkl")
 
 class Turn_right(Policy):
-    def __init__(self,env):
-        super(Turn_right, self).__init__("hrl/weights/Turn_right/v1.0.pkl", env)
+    def __init__(self):
+        super(Turn_right, self).__init__("hrl/weights/Turn_right/v1.0.pkl")

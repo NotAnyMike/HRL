@@ -1,7 +1,7 @@
 import os
 import shutil
 from pdb import set_trace
-from copy import deepcopy
+from copy import deepcopy,copy
 
 import pandas as pd
 import numpy as np
@@ -106,12 +106,6 @@ def run_experiment(
                     #policy_kwargs={'data_format':'NCHW'},
                 )
 
-    # Set key functions
-    show_hide = Show_hide(model,not_save,experiment_folder)
-    #env.env_method("set_press_fn",show_hide)
-    #for tmp_env in env.envs:
-        #tmp_env.set_press_fn(show_hide)
-
     # set bar
     callback = Callback(
             not_save=not_save,
@@ -144,30 +138,6 @@ def run_experiment(
     try:
         with tqdm.tqdm(total=train_steps, leave=True) as bar:
             callback.set_bars(bar)
-
-            COMBINATION = {
-                        KeyCode.from_char('s'),
-                        KeyCode.from_char('a'),
-                        KeyCode.from_char('d'),
-                        KeyCode.from_char('f')}
-            current = set()
-
-            def on_press(key):
-                if key in COMBINATION:
-                    current.add(key)
-                    if all(k in current for k in COMBINATION):
-                        model.render = not model.render
-            def on_release(key):
-                try:
-                    current.remove(key)
-                except KeyError:
-                    pass
-
-            listener = Listener(
-                        on_press=on_press,
-                        on_release=on_release)
-            listener.start()
-
             model.learn(
                     total_timesteps=train_steps,
                     callback=callback,
@@ -177,7 +147,7 @@ def run_experiment(
             model.save(experiment_folder+"/weights_final")
 
     except KeyboardInterrupt:
-        if not not_save and input("Do you want to delete this experiment? (Yes/n) ") == "Yes":
+        if not not_save and input("Do you want to DELETE this experiment? (Yes/n) ") == "Yes":
             df = pd.read_csv(experiment_csv, index_col=0)
             df.drop(df.index[id],inplace=True)
             df.to_csv(experiment_csv)
@@ -186,28 +156,6 @@ def run_experiment(
         else:
             if not not_save:
                 model.save(experiment_folder+"/weights_final")
-
-
-# This is not working so far because multiprocesses have the problem with
-# sharing objects, and the solution is not that simple
-class Show_hide:
-    def __init__(self,model,not_save,experiment_folder="experiments/"):
-        self.model = model
-        self.experiment_folder = experiment_folder
-        self.not_save = not_save
-
-    def __call__(self,k, mod):
-        if k==key.S: # S from show
-            self.model.render = not self.model.render
-            for env in self.model.env.envs:
-                env.auto_render = not env.auto_render
-
-        if not self.not_save:
-            if k==key.T: # T from T screnshot
-                self.model.env.envs[0].screenshot(self.experiment_folder)
-            if k==key.W: # W from weights
-                self.model.save(
-                        self.experiment_folder+'/weights_'+str(self.model.num_timesteps))
 
 class Callback:
     def __init__(self,not_save,logger,train_steps,n,experiment_folder,
