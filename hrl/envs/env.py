@@ -4,7 +4,7 @@ from pyglet import gl
 
 from gym.envs.box2d import CarRacing
 from gym import spaces
-from gym.envs.box2d.car_racing import play, TILE_NAME, default_reward_callback, SOFT_NEG_REWARD, HARD_NEG_REWARD, WINDOW_W, WINDOW_H
+from gym.envs.box2d.car_racing import play, TILE_NAME, default_reward_callback, SOFT_NEG_REWARD, HARD_NEG_REWARD, WINDOW_W, WINDOW_H, TRACK_WIDTH
 
 from hrl.common.arg_extractor import get_env_args
 from hrl.envs import env as environments
@@ -61,11 +61,8 @@ class Turn_side(Base):
                 # If in objective
                 reward += 10
                 done = True
-            elif (left|right).sum() == 0:
-                # In case it is outside the track 
-                done = True
-                reward -= HARD_NEG_REWARD
             else:
+                reward,done = env.check_outside(reward,done)
                 reward,done = env.check_timeout(reward,done)
                 reward,done = env.check_unvisited_tiles(reward,done)
                 
@@ -101,6 +98,7 @@ class Turn_side(Base):
                 max_time_out=1.0,
                 max_step_reward=10,
                 high_level=high_level, 
+                allow_outside=False,
                 *args, 
                 **kwargs,
                 )
@@ -345,6 +343,98 @@ class Turn(Turn_side):
 
     def _render_additional_objects(self):
         self._render_arrow()
+
+class Take_center(Base):
+    def __init__(self,*args, **kwargs):
+        def reward_fn(env):
+            reward = -SOFT_NEG_REWARD
+            done = False
+
+            right_old  = env.info['count_right_delay']  > 0
+            left_old  = env.info['count_left_delay']  > 0
+
+            if env.goal_id in np.where(right_old|left_old)[0]:
+                # If in objective
+                reward += 10
+                done = True
+            else:
+                reward,done = env.check_outside(reward,done)
+                reward,done = env.check_timeout(reward,done)
+                reward,done = env.check_unvisited_tiles(reward,done)
+            
+                # if still in the same lane and same track 
+                if False: 
+                    factor = 1
+                    reward += 1 / factor
+
+            # Cliping reward per episode
+            full_reward = reward
+            reward = np.clip(
+                    reward, env.min_step_reward, env.max_step_reward)
+
+            env.info['visited'][left_old | right_old] = True
+            env.info['count_right_delay'] = env.info['count_right']
+            env.info['count_left_delay']  = env.info['count_left']
+            
+            return reward,full_reward,done
+
+        super(Take_center,self).__init__(
+                reward_fn=reward_fn,
+                max_time_out=1.0,
+                *args, 
+                **kwargs,
+                )
+
+    def reset(self):
+        to_return = False
+        while to_return is False:
+            to_return = self._weak_reset()
+        return to_return
+
+    def _weak_reset(self):
+        to_return = super(Take_center,self).reset()
+
+        # Chose start randomly before or after intersection
+        tiles_before = -1 if np.random.uniform() < 0.5 else 1 
+        tiles_before *= 8
+
+        # Finding 'x' intersection
+        filter = self.info['x'] == True
+        if filter.sum() == 0:
+            return False
+
+        # original point
+        idx_org = np.random.choice(np.where(filter)[0])
+        idx_relative = idx_org - (self.info['track'] < self.info[idx_org]['track']).sum()
+        track = self.track[self.info['track'] == self.info[idx_org]['track']]
+
+        # Get start
+        idx_general = (idx_relative - tiles_before)%len(track) + (self.info['track'] < self.info[idx_org]['track']).sum()
+        start = self._get_rnd_position_inside_lane(idx_general)
+        if -tiles_before > 0: start[1] += np.pi # beta
+        self.start_id = idx_general
+        self.track_id = self.info[idx_general]['track']
+
+        # Get goal
+        idx_general = (idx_relative + tiles_before)%len(track) + (self.info['track'] < self.info[idx_org]['track']).sum()
+        goal = self._get_rnd_position_inside_lane(idx_general)
+        if tiles_before > 0: goal[1] += np.pi # beta
+        self.goal_id  = idx_general
+
+        # Get a random position in a lane 
+        lane = 1 if np.random.uniform() < 0.5 else 0
+        delta = np.random.uniform()
+        _,beta,x,y = start
+        x = x + (-1)**lane*np.cos(beta)*delta*TRACK_WIDTH/2
+        y = y + (-1)**lane*np.sin(beta)*delta*TRACK_WIDTH/2
+        angle_noise = np.random.uniform(-1,1)*np.pi/8
+        beta += angle_noise # orientation with noise
+        self.place_agent([beta,x,y])
+
+        # Save the current lane and track
+        self.lane_id  = lane
+
+        return to_return
 
 if __name__=='__main__':
     args = get_env_args()
