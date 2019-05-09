@@ -347,11 +347,13 @@ class Turn(Turn_side):
 class Take_center(Base):
     def __init__(self,*args, **kwargs):
         def reward_fn(env):
-            reward = -SOFT_NEG_REWARD
+            reward = -SOFT_NEG_REWARD*0
             done = False
 
             right_old  = env.info['count_right_delay']  > 0
             left_old  = env.info['count_left_delay']  > 0
+            not_visited = env.info['visited'] == False
+            track = env.info['track'] == env.track_id
 
             if env.goal_id in np.where(right_old|left_old)[0]:
                 # If in objective
@@ -363,8 +365,17 @@ class Take_center(Base):
                 reward,done = env.check_unvisited_tiles(reward,done)
             
                 # if still in the same lane and same track 
-                if False: 
-                    factor = 1
+                # if still in the prediction set
+                if not done and len(list(set(env.predictions_id) & set(\
+                        np.where(not_visited & (right_old|left_old))[0]))) > 0:
+        
+                    # if in different lane than original
+                    if env.lane_id == 1 and (left_old & track & not_visited).sum() > 0:
+                        factor = 2
+                    elif env.lane_id == 0 and (right_old & track & not_visited).sum() > 0:
+                        factor = 2
+                    else:
+                        factor = 1 
                     reward += 1 / factor
 
             # Cliping reward per episode
@@ -410,7 +421,7 @@ class Take_center(Base):
 
         # Get start
         idx_general = (idx_relative - tiles_before)%len(track) + (self.info['track'] < self.info[idx_org]['track']).sum()
-        start = self._get_rnd_position_inside_lane(idx_general)
+        start = self.track[idx_general][0]#self._get_rnd_position_inside_lane(idx_general)
         if -tiles_before > 0: start[1] += np.pi # beta
         self.start_id = idx_general
         self.track_id = self.info[idx_general]['track']
@@ -422,17 +433,30 @@ class Take_center(Base):
         self.goal_id  = idx_general
 
         # Get a random position in a lane 
-        lane = 1 if np.random.uniform() < 0.5 else 0
-        delta = np.random.uniform()
+        lane = 0 if np.random.uniform() < 0.5 else 1
+        delta = np.random.uniform(low=0.0)
         _,beta,x,y = start
-        x = x + (-1)**lane*np.cos(beta)*delta*TRACK_WIDTH/2
-        y = y + (-1)**lane*np.sin(beta)*delta*TRACK_WIDTH/2
+        x = x + (-(-1)**lane)*np.cos(beta)*delta*(TRACK_WIDTH)
+        y = y + (-(-1)**lane)*np.sin(beta)*delta*(TRACK_WIDTH)
         angle_noise = np.random.uniform(-1,1)*np.pi/8
         beta += angle_noise # orientation with noise
         self.place_agent([beta,x,y])
 
         # Save the current lane and track
-        self.lane_id  = lane
+        self.lane_id = lane if tiles_before > 0 else 1-lane 
+
+        # Create predictions
+        predictions_id = list(range(abs(tiles_before*2)))
+        if tiles_before > 0:
+            predictions_id = [ idx_relative-tiles_before+id for id in predictions_id ] 
+        else:
+            predictions_id = [ idx_relative-tiles_before-id for id in predictions_id ] 
+        predictions_id = [ id % (self.info['track'] == self.track_id).sum() \
+                for id in predictions_id ]
+        predictions_id = [ id + (self.info['track'] < self.track_id).sum() \
+                for id in predictions_id ]
+        self.predictions_id = predictions_id
+
 
         return to_return
 
