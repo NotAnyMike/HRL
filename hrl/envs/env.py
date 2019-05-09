@@ -395,8 +395,10 @@ class Take_center(Base):
                 *args, 
                 **kwargs,
                 )
+        self.predictions_id = []
 
     def reset(self):
+        self.predictions_id = []
         to_return = False
         while to_return is False:
             to_return = self._weak_reset()
@@ -417,20 +419,40 @@ class Take_center(Base):
         # original point
         idx_org = np.random.choice(np.where(filter)[0])
         idx_relative = idx_org - (self.info['track'] < self.info[idx_org]['track']).sum()
-        track = self.track[self.info['track'] == self.info[idx_org]['track']]
+
+        intersection = self.understand_intersection(idx_org,-np.sign(tiles_before))
+        if intersection['straight'] == None: return False
 
         # Get start
+        track = self.track[self.info['track'] == self.info[idx_org]['track']]
         idx_general = (idx_relative - tiles_before)%len(track) + (self.info['track'] < self.info[idx_org]['track']).sum()
-        start = self.track[idx_general][0]#self._get_rnd_position_inside_lane(idx_general)
+        start = self.track[idx_general][0]
         if -tiles_before > 0: start[1] += np.pi # beta
         self.start_id = idx_general
         self.track_id = self.info[idx_general]['track']
 
+        # Create predictions before intersection
+        predictions_before = list(range(abs(tiles_before)))
+        predictions_before = [ idx_relative-tiles_before+np.sign(tiles_before)*id for id in predictions_before ] 
+        predictions_before = [ id % len(track) \
+                for id in predictions_before ]
+        predictions_before = [ id + (self.info['track'] < self.track_id).sum() \
+                for id in predictions_before ]
+
         # Get goal
-        idx_general = (idx_relative + tiles_before)%len(track) + (self.info['track'] < self.info[idx_org]['track']).sum()
-        goal = self._get_rnd_position_inside_lane(idx_general)
-        if tiles_before > 0: goal[1] += np.pi # beta
+        straight = intersection['straight'] 
+        track = self.track[self.info['track'] == self.info[straight]['track']]
+        idx_relative = straight - (self.info['track'] < self.info[straight]['track']).sum()
+        idx_general = (idx_relative + tiles_before)%len(track) + (self.info['track'] < self.info[straight]['track']).sum()
         self.goal_id  = idx_general
+
+        # Create predictions after intersection
+        predictions_after = list(range(abs(tiles_before)))
+        predictions_after = [ idx_relative+np.sign(tiles_before)*id for id in predictions_after ] 
+        predictions_after = [ id % len(track) \
+                for id in predictions_after ]
+        predictions_after = [ id + (self.info['track'] < self.info[straight]['track']).sum() \
+                for id in predictions_after ]
 
         # Get a random position in a lane 
         lane = 0 if np.random.uniform() < 0.5 else 1
@@ -441,24 +463,49 @@ class Take_center(Base):
         angle_noise = np.random.uniform(-1,1)*np.pi/8
         beta += angle_noise # orientation with noise
         self.place_agent([beta,x,y])
+        speed = np.random.uniform(0,100)
+        self.set_speed(speed)
 
         # Save the current lane and track
         self.lane_id = lane if tiles_before > 0 else 1-lane 
 
-        # Create predictions
-        predictions_id = list(range(abs(tiles_before*2)))
-        if tiles_before > 0:
-            predictions_id = [ idx_relative-tiles_before+id for id in predictions_id ] 
-        else:
-            predictions_id = [ idx_relative-tiles_before-id for id in predictions_id ] 
-        predictions_id = [ id % (self.info['track'] == self.track_id).sum() \
-                for id in predictions_id ]
-        predictions_id = [ id + (self.info['track'] < self.track_id).sum() \
-                for id in predictions_id ]
-        self.predictions_id = predictions_id
 
+        self.predictions_id = predictions_before + predictions_after
 
         return to_return
+
+    def update_contact_with_track(self):
+        # Only updating it if still in prediction
+
+        not_visited = self.info['visited'] == False
+        right = self.info['count_right'] > 0
+        left  = self.info['count_left']  > 0
+
+        # Intersection of the prediction and the set that you are currently in
+        if len(list( set(self.predictions_id) & set(\
+                np.where(right|left)[0]))) > 0:
+            super(Take_center,self).update_contact_with_track()
+
+    def _render_arrow(self):
+        # Arrow
+        gl.glBegin(gl.GL_TRIANGLES)
+        gl.glColor4f(0.7,0,0,1)
+        gl.glVertex3f(WINDOW_W//2, WINDOW_H-40,0)
+        gl.glVertex3f(WINDOW_W//2-40,WINDOW_H-40-40,0)
+        gl.glVertex3f(WINDOW_W//2+40,WINDOW_H-40-40,0)
+        gl.glEnd()
+
+        # Body
+        gl.glBegin(gl.GL_QUADS)
+        gl.glColor4f(0.7,0,0,1)
+        gl.glVertex3f(WINDOW_W//2+15,WINDOW_H-80,0)
+        gl.glVertex3f(WINDOW_W//2+15,WINDOW_H-80-50,0)
+        gl.glVertex3f(WINDOW_W//2-15,WINDOW_H-80-50,0)
+        gl.glVertex3f(WINDOW_W//2-15,WINDOW_H-80,0)
+        gl.glEnd()
+
+    def _render_additional_objects(self):
+        self._render_arrow()
 
 if __name__=='__main__':
     args = get_env_args()
