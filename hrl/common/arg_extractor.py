@@ -39,7 +39,7 @@ def get_train_args():
     parser.add_argument('--train_steps', type=int,
             help="The total number of steps to train for.  \
                     Default: 1m")
-    parser.add_argument('--n', '-n', type=str,
+    parser.add_argument('--n', '-n', type=int,
             help="The number of steps from where to start counting \
                     the next steps. Default: 0")
     parser.add_argument('--env_num', type=int,
