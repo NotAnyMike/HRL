@@ -344,6 +344,19 @@ class Turn(Turn_side):
     def _render_additional_objects(self):
         self._render_arrow()
 
+class Turn_n2n(Turn):
+    def __init__(self,*args,**kwargs):
+        super(Turn,self).__init__(*args,**kwargs)
+
+        self._direction = 'right' if np.random.uniform() >= 0.5 else 'left'
+        self._flow = -1 if self._direction == 'right' else 1
+
+    def _set_config(self,**kwargs):
+        super(Turn,self)._set_config(**kwargs)
+
+    def step(self,action):
+        return super(Turn,self).step(action)
+
 class Take_center(Base):
     def __init__(self,*args, **kwargs):
         def reward_fn(env):
