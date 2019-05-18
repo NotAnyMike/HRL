@@ -1,15 +1,18 @@
-import numpy as np
-from pdb import set_trace
-from pyglet import gl
+import multiprocessing as mp
 
+import numpy as np
 from gym.envs.box2d import CarRacing
 from gym import spaces
 from gym.envs.box2d.car_racing import play, TILE_NAME, default_reward_callback, SOFT_NEG_REWARD, HARD_NEG_REWARD, WINDOW_W, WINDOW_H, TRACK_WIDTH
+from pdb import set_trace
+from pyglet import gl
+from pyglet.window import key
 
 from hrl.common.arg_extractor import get_env_args
 from hrl.envs import env as environments
 from hrl.policies.policy import Turn_left as Left_policy
 from hrl.policies.policy import Turn_right as Right_policy
+from hrl.common.visualiser import PickleWrapper, Plotter, worker
 
 class Base(CarRacing):
     def __init__(self, 
@@ -18,6 +21,7 @@ class Base(CarRacing):
             max_step_reward=1,
             auto_render=False,
             high_level=False,
+            id='Nav',
             *args,
             **kwargs,
             ):
@@ -41,9 +45,50 @@ class Base(CarRacing):
                 **kwargs,
                 )
         self.high_level = high_level
+        self.visualiser_process = None
+        self.ID = id
+        self.active_policies = set([self.ID])
+
+    def _key_press(self,k,mod):
+        if k == key.B: # B from dashBoard
+            if self.visualiser_process == None:
+                # Create visualiser
+                self.connection, child_conn = mp.Pipe()
+                to_pickle = lambda: Plotter()
+                args = (PickleWrapper(to_pickle),child_conn)
+                self.ctx = mp.get_context('spawn')
+                self.visualiser_process = self.ctx.Process(
+                        target=worker,
+                        args=args,
+                        daemon=True,)
+                self.visualiser_process.start()
+
+                self.connection.send(("add_active_policies",
+                        [[self.active_policies],{}]))
+            else:
+                self.visualiser_process.terminate()
+                del self.visualiser_process
+                del self.connection
+                del self.ctx
+                self.visualiser_process = None
+
+        super(Base,self)._key_press(k,mod)
+
+    def _key_release(self,k,mod):
+        super(Base,self)._key_release(k,mod)
+
+    def add_active_policy(self,policy_name):
+        self.active_policies.add(policy_name) 
+        if self.visualiser_process is not None:
+            self.connection.send(("add_active_policy", [[policy_name],{}]))
+
+    def remove_active_policy(self,policy_name):
+        self.active_policies.remove(policy_name)
+        if self.visualiser_process is not None:
+            self.connection.send(("remove_active_policy", [[policy_name],{}]))
 
 class Turn_side(Base):
-    def __init__(self, high_level=False, *args, **kwargs):
+    def __init__(self, high_level=False,id='T', *args, **kwargs):
         def reward_fn(env):
             reward = -SOFT_NEG_REWARD
             done = False
@@ -99,6 +144,7 @@ class Turn_side(Base):
                 max_step_reward=10,
                 high_level=high_level, 
                 allow_outside=False,
+                id=id,
                 *args, 
                 **kwargs,
                 )
@@ -264,20 +310,20 @@ class Turn_side(Base):
                 del self._current_nodes[id]
 
 class Turn_left(Turn_side):
-    def __init__(self):
-        super(Turn_left,self).__init__()
+    def __init__(self,id='TL'):
+        super(Turn_left,self).__init__(id=id)
         self._flow = 1
         self._direction = 'left'
 
 class Turn_right(Turn_side):
-    def __init__(self):
-        super(Turn_right,self).__init__()
+    def __init__(self,id='TR'):
+        super(Turn_right,self).__init__(id=id)
         self._flow = -1
         self._direction = 'right'
 
 class Turn(Turn_side):
-    def __init__(self,*args,**kwargs):
-        super(Turn,self).__init__(high_level=True,*args,**kwargs)
+    def __init__(self,id='T',*args,**kwargs):
+        super(Turn,self).__init__(id=id,high_level=True,*args,**kwargs)
 
         self._direction = 'right' if np.random.uniform() >= 0.5 else 'left'
         self._flow = -1 if self._direction == 'right' else 1
@@ -345,8 +391,8 @@ class Turn(Turn_side):
         self._render_arrow()
 
 class Turn_n2n(Turn):
-    def __init__(self,*args,**kwargs):
-        super(Turn,self).__init__(*args,**kwargs)
+    def __init__(self,id='T',*args,**kwargs):
+        super(Turn,self).__init__(id=id,*args,**kwargs)
 
         self._direction = 'right' if np.random.uniform() >= 0.5 else 'left'
         self._flow = -1 if self._direction == 'right' else 1
@@ -358,7 +404,7 @@ class Turn_n2n(Turn):
         return super(Turn,self).step(action)
 
 class Take_center(Base):
-    def __init__(self,*args, **kwargs):
+    def __init__(self, id='TC',*args, **kwargs):
         def reward_fn(env):
             reward = -SOFT_NEG_REWARD*0
             done = False
@@ -405,6 +451,7 @@ class Take_center(Base):
         super(Take_center,self).__init__(
                 reward_fn=reward_fn,
                 max_time_out=1.0,
+                id=id,
                 *args, 
                 **kwargs,
                 )

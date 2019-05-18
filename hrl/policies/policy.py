@@ -9,6 +9,7 @@ class Policy:
         self.model = PPO2.load(weights)
         self.max_steps = 40
         self.n = 0
+        self.ID = None
 
     def __call__(self,env,state):
         action_rwrd = 0
@@ -17,12 +18,14 @@ class Policy:
         self.n = 0
 
         obs = state
+        env.add_active_policy(self.ID)
         while self.n == 0 or (not self._done(env) and not done):
             action, _states = self.model.predict(obs)
             obs,rewards,done,info = env.raw_step(action)
 
             action_rwrd += rewards
             self.n += 1
+        env.remove_active_policy(self.ID)
 
         return obs,action_rwrd,done,info
 
@@ -48,7 +51,9 @@ class Policy:
 class Turn_left(Policy):
     def __init__(self):
         super(Turn_left, self).__init__("hrl/weights/Turn_left/v1.0.pkl")
+        self.ID = "TL"
 
 class Turn_right(Policy):
     def __init__(self):
         super(Turn_right, self).__init__("hrl/weights/Turn_right/v1.0.pkl")
+        self.ID = "TR"
