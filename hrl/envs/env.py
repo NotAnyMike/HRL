@@ -48,6 +48,7 @@ class Base(CarRacing):
         self.visualiser_process = None
         self.ID = id
         self.active_policies = set([self.ID])
+        self.stats = {}
 
     def _key_press(self,k,mod):
         if k == key.B: # B from dashBoard
@@ -88,7 +89,14 @@ class Base(CarRacing):
             self.connection.send(("remove_active_policy", [[policy_name],{}]))
 
 class Turn_side(Base):
-    def __init__(self, high_level=False,id='T', *args, **kwargs):
+    def __init__(self, 
+            high_level=False, 
+            id='T', 
+            max_time_outo=1.0, 
+            max_step_reward=10, 
+            allow_outside=False,
+            reward_function=None,
+            *args, **kwargs):
         def reward_fn(env):
             reward = -SOFT_NEG_REWARD
             done = False
@@ -140,18 +148,20 @@ class Turn_side(Base):
 
         super(Turn_side,self).__init__(
                 reward_fn=reward_fn,
-                max_time_out=1.0,
-                max_step_reward=10,
                 high_level=high_level, 
-                allow_outside=False,
+                allow_outside=allow_outside,
                 id=id,
                 *args, 
                 **kwargs,
                 )
         self.goal_id = None
         self.new = True
+        self._reward_fn_side = reward_fn
 
     def update_contact_with_track(self):
+        self.update_contact_with_track_side()
+
+    def update_contact_with_track_side(self):
         # Only updating it if still in prediction
 
         not_visited = self.info['visited'] == False
@@ -164,16 +174,9 @@ class Turn_side(Base):
                 np.where(right|left)[0]))) > 0:
             super(Turn_side,self).update_contact_with_track()
 
-    def _weak_reset(self):
-        """
-        This function takes care of ALL the processes to reset the 
-        environment, if anything goes wrong, it returns false.
-        This is in order to allow several retries to reset 
-        the environment
-        """
-        to_return = super(Turn_side,self).reset()
+    def _generate_predictions_side(self,filter):
+        Ok = True
         tiles_before = 8
-        filter = (self.info['x']) | ((self.info['t']) & (self.info['track'] >0))
         idx = np.random.choice(np.where(filter)[0])
 
         idx_relative = idx - (self.info['track'] < self.info[idx]['track']).sum()
@@ -276,14 +279,30 @@ class Turn_side(Base):
 
         self.goal_id = list(self._next_nodes[-1].keys())[0]
         self.new = True
-        return to_return
+        return Ok
+
+
+    def _weak_reset_side(self):
+        """
+        This function takes care of ALL the processes to reset the 
+        environment, if anything goes wrong, it returns false.
+        This is in order to allow several retries to reset 
+        the environment
+        """
+        filter = (self.info['x']) | ((self.info['t']) & (self.info['track'] >0))
+        if any(filter) == False:
+            return False
+        else:
+            return self._generate_predictions_side(filter)
     
     def reset(self):
         while True:
-            to_return = self._weak_reset()
-            if to_return is not False:
-                break
-        return to_return
+            obs = super(Turn_side,self).reset()
+            if obs is not False:
+                if self._weak_reset_side():
+                    break
+        obs = self.step(None)[0]
+        return obs
 
     def _remove_prediction(self, id,lane,direction):
         ###### Removing current new tile from nexts
@@ -322,8 +341,8 @@ class Turn_right(Turn_side):
         self._direction = 'right'
 
 class Turn(Turn_side):
-    def __init__(self,id='T',*args,**kwargs):
-        super(Turn,self).__init__(id=id,high_level=True,*args,**kwargs)
+    def __init__(self,id='T',high_level=True,*args,**kwargs):
+        super(Turn,self).__init__(id=id,high_level=high_level,*args,**kwargs)
 
         self._direction = 'right' if np.random.uniform() >= 0.5 else 'left'
         self._flow = -1 if self._direction == 'right' else 1
@@ -366,7 +385,7 @@ class Turn(Turn_side):
             action = self.actions['right']
         return action
 
-    def _render_arrow(self):
+    def _render_side_arrow(self):
         d = 1 if self._direction == 'right' else 0
         f = self._flow
 
@@ -388,7 +407,7 @@ class Turn(Turn_side):
         gl.glEnd()
 
     def _render_additional_objects(self):
-        self._render_arrow()
+        self._render_side_arrow()
 
 class Turn_n2n(Turn):
     def __init__(self,id='T',*args,**kwargs):
@@ -404,7 +423,7 @@ class Turn_n2n(Turn):
         return super(Turn,self).step(action)
 
 class Take_center(Base):
-    def __init__(self, id='TC',*args, **kwargs):
+    def __init__(self, id='TC', reward_fn=None, max_time_out=1.0,*args, **kwargs):
         def reward_fn(env):
             reward = -SOFT_NEG_REWARD*0
             done = False
@@ -450,31 +469,30 @@ class Take_center(Base):
 
         super(Take_center,self).__init__(
                 reward_fn=reward_fn,
-                max_time_out=1.0,
+                max_time_out=max_time_out,
                 id=id,
                 *args, 
                 **kwargs,
                 )
         self.predictions_id = []
+        self._reward_fn_center = reward_fn
 
     def reset(self):
         self.predictions_id = []
-        to_return = False
-        while to_return is False:
-            to_return = self._weak_reset()
-        return to_return
+        while True: 
+            obs = super(Take_center,self).reset()
+            if obs is not False:
+                if self._weak_reset_center():
+                    break
+        obs = self.step(None)[0]
+        return obs
 
-    def _weak_reset(self):
-        to_return = super(Take_center,self).reset()
+    def _generate_predictions_center(self,filter):
+        Ok = True
 
         # Chose start randomly before or after intersection
         tiles_before = -1 if np.random.uniform() < 0.5 else 1 
         tiles_before *= 8
-
-        # Finding 'x' intersection
-        filter = self.info['x'] == True
-        if filter.sum() == 0:
-            return False
 
         # original point
         idx_org = np.random.choice(np.where(filter)[0])
@@ -529,12 +547,22 @@ class Take_center(Base):
         # Save the current lane and track
         self.lane_id = lane if tiles_before > 0 else 1-lane 
 
-
         self.predictions_id = predictions_before + predictions_after
 
-        return to_return
+        return Ok
+
+    def _weak_reset_center(self):
+        # Finding 'x' intersection
+        filter = self.info['x'] == True
+        if filter.sum() == 0:
+            return False
+        return self._generate_predictions_center(filter)
+
 
     def update_contact_with_track(self):
+        self.update_contact_with_track_center()
+
+    def update_contact_with_track_center(self):
         # Only updating it if still in prediction
 
         not_visited = self.info['visited'] == False
@@ -546,7 +574,7 @@ class Take_center(Base):
                 np.where(right|left)[0]))) > 0:
             super(Take_center,self).update_contact_with_track()
 
-    def _render_arrow(self):
+    def _render_center_arrow(self):
         # Arrow
         gl.glBegin(gl.GL_TRIANGLES)
         gl.glColor4f(0.7,0,0,1)
@@ -565,10 +593,90 @@ class Take_center(Base):
         gl.glEnd()
 
     def _render_additional_objects(self):
-        self._render_arrow()
+        self._render_center_arrow()
+
+class X(Turn,Take_center):
+    def __init__(self, 
+            left_count=0,
+            right_count=0,
+            center_count=0,
+            total_tracks_generated=0,
+            is_current_type_side=None, 
+            reward_fn=None, 
+            *args, **kwargs):
+        def reward_fn(env):
+            if env.is_current_type_side:
+                return env._reward_fn_side(env)
+            else:
+                return env._reward_fn_center(env)
+
+        super(X,self).__init__(*args,**kwargs)
+        self.is_current_type_side = is_current_type_side
+        self.reward_fn = reward_fn
+        self.reward_fn_X = reward_fn
+
+        self.stats['left_count'] = left_count
+        self.stats['right_count'] = right_count
+        self.stats['center_count'] = center_count
+        self.stats['total_tracks_generated'] = total_tracks_generated
+
+    def reset(self):
+        while True:
+            obs = Base.reset(self)
+            self.stats['total_tracks_generated'] += 1
+            #filter = (self.info['x']) | ((self.info['t']) & (self.info['track'] >0))
+            filter = self.info['x']
+            if any(filter):
+                # chose randomly between Take_center and Turn 
+                # 2/3 because sides are 50/50 left and right
+                self.is_current_type_side = True if np.random.uniform() < 2/3 else False
+                if self.is_current_type_side:
+                    self._direction = 'right' if np.random.uniform() >= 0.5 else 'left'
+                    self._flow = -1 if self._direction == 'right' else 1
+
+                    ok = self._generate_predictions_side(filter)
+                else:
+                    ok = self._generate_predictions_center(filter)
+
+                if ok:
+                    if self.is_current_type_side:
+                        if self._direction == 'right':
+                            self.stats['right_count'] += 1
+                        else:
+                            self.stats['left_count'] += 1
+                    else:
+                        self.stats['center_count'] += 1
+                    break
+            else:
+                continue
+        obs = self.step(None)[0]
+        print("\n######")
+        print("total:",self.stats['total_tracks_generated'])
+        print("total_x:", self.stats['left_count'] + self.stats['right_count'] + self.stats['center_count'])
+        print("left:", self.stats['left_count'])
+        print("right:", self.stats['right_count'])
+        print("center:", self.stats['center_count'])
+        print("#####")
+        return obs
+    
+    def weak_reset(self):
+        raise NotImplementedError
+
+    def update_contact_with_track(self):
+        if self.is_current_type_side:
+            self.update_contact_with_track_side()
+        else:
+            self.update_contact_with_track_center()
+
+    def _render_additional_objects(self):
+        if self.is_current_type_side:
+            self._render_side_arrow()
+        else:
+            self._render_center_arrow()
 
 if __name__=='__main__':
     args = get_env_args()
     env = getattr(environments, args.env)()
     if env.high_level: env.auto_render = True
     play(env)
+
