@@ -97,6 +97,7 @@ class Turn_side(Base):
             allow_outside=False,
             reward_function=None,
             *args, **kwargs):
+
         def reward_fn(env):
             reward = -SOFT_NEG_REWARD
             done = False
@@ -172,7 +173,8 @@ class Turn_side(Base):
         # Intersection of the prediction and the set that you are currently in
         if len(list( set(predictions_id) & set(\
                 np.where(right|left)[0]))) > 0:
-            super(Turn_side,self).update_contact_with_track()
+            self.last_touch_with_track = self.t
+            #super(Turn_side,self).update_contact_with_track()
 
     def _generate_predictions_side(self,filter):
         Ok = True
@@ -269,7 +271,14 @@ class Turn_side(Base):
 
         # The direction of lane
         flow = self._flow
-        if current_track == 0: flow *= -1
+        if current_track == 0: 
+            #flow *= -1 # TODO original code, check it there is no problem
+            # This line below was added to avoid having the filter in X class only
+            # searching for x intersections in second track, this in theory
+            # will allow correct renderisation of predictions and arrows for any
+            # filter, but it is necessary to check if this code does not break
+            # Turn, Turn_left and right, if it does not remove this comment
+            flow *= (-1 if avg_second_track < avg_main_track else 1)
         else:
             flow *= (-1 if avg_second_track > avg_main_track else 1)
         if inter[self._direction] is not None:
@@ -290,6 +299,7 @@ class Turn_side(Base):
         the environment
         """
         filter = (self.info['x']) | ((self.info['t']) & (self.info['track'] >0))
+        # TODO why is a track > 0?
         if any(filter) == False:
             return False
         else:
@@ -572,7 +582,8 @@ class Take_center(Base):
         # Intersection of the prediction and the set that you are currently in
         if len(list( set(self.predictions_id) & set(\
                 np.where(right|left)[0]))) > 0:
-            super(Take_center,self).update_contact_with_track()
+            #super(Take_center,self).update_contact_with_track()
+            self.last_touch_with_track = self.t
 
     def _render_center_arrow(self):
         # Arrow
@@ -622,10 +633,10 @@ class X(Turn,Take_center):
 
     def reset(self):
         while True:
-            obs = Base.reset(self)
+            obs = super(Take_center,self).reset() # Just calls base.reset
             self.stats['total_tracks_generated'] += 1
             #filter = (self.info['x']) | ((self.info['t']) & (self.info['track'] >0))
-            filter = self.info['x']
+            filter = (self.info['x'])# & (self.info['track'] == 0))
             if any(filter):
                 # chose randomly between Take_center and Turn 
                 # 2/3 because sides are 50/50 left and right
@@ -650,14 +661,10 @@ class X(Turn,Take_center):
             else:
                 continue
         obs = self.step(None)[0]
-        print("\n######")
-        print("total:",self.stats['total_tracks_generated'])
-        print("total_x:", self.stats['left_count'] + self.stats['right_count'] + self.stats['center_count'])
-        print("left:", self.stats['left_count'])
-        print("right:", self.stats['right_count'])
-        print("center:", self.stats['center_count'])
-        print("#####")
         return obs
+
+    def step(self,action):
+        return super(Turn,self).step(action)
     
     def weak_reset(self):
         raise NotImplementedError
@@ -674,9 +681,11 @@ class X(Turn,Take_center):
         else:
             self._render_center_arrow()
 
+
 if __name__=='__main__':
     args = get_env_args()
     env = getattr(environments, args.env)()
     if env.high_level: env.auto_render = True
     play(env)
+
 
