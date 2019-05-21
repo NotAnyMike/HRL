@@ -73,6 +73,9 @@ def generate_tracks(n_tracks,n_cpu):
             if count > n_tracks: 
                 break
 
+        for process,conn in zip(processes,connections):
+            conn.close()
+            process.terminate()
 
 if __name__=='__main__':
     n_tracks = int(input("\nHow many tracks to generate? (eg. 10000) "))
