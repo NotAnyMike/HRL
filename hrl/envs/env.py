@@ -625,6 +625,7 @@ class X(Turn,Take_center):
                 return env._reward_fn_center(env)
 
         super(X,self).__init__(*args,**kwargs)
+        self.ID = 'X'
         self.is_current_type_side = is_current_type_side
         self.reward_fn = reward_fn
         self.reward_fn_X = reward_fn
@@ -637,6 +638,8 @@ class X(Turn,Take_center):
         self.stats['right_count'] = right_count
         self.stats['center_count'] = center_count
         self.stats['total_tracks_generated'] = total_tracks_generated
+
+        self.tracks_df = self.tracks_df[self.tracks_df['x'] == True]
 
     def reset(self):
         while True:
