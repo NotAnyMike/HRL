@@ -57,3 +57,13 @@ class Turn_right(Policy):
     def __init__(self):
         super(Turn_right, self).__init__("hrl/weights/Turn_right/v1.0.pkl")
         self.ID = "TR"
+
+class Take_center(Policy):
+    def __init__(self):
+        super(Turn_right, self).__init__("hrl/weights/Take_center/v1.0.pkl")
+        self.ID = "TC"
+
+class Turn(Policy):
+    def __init__(self):
+        super(Turn_right, self).__init__("hrl/weights/Turn/v1.0.pkl")
+        self.ID = "TR"

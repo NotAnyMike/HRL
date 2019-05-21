@@ -12,6 +12,8 @@ from hrl.common.arg_extractor import get_env_args
 from hrl.envs import env as environments
 from hrl.policies.policy import Turn_left as Left_policy
 from hrl.policies.policy import Turn_right as Right_policy
+from hrl.policies.policy import Turn as Turn_policy
+from hrl.policies.policy import Take_center as Take_center_policy
 from hrl.common.visualiser import PickleWrapper, Plotter, worker
 
 class Base(CarRacing):
@@ -626,6 +628,10 @@ class X(Turn,Take_center):
         self.reward_fn = reward_fn
         self.reward_fn_X = reward_fn
 
+        self.actions = {}
+        self.actions['turn']  = Turn_policy()
+        self.actions['take_center'] = Take_center_policy()
+
         self.stats['left_count'] = left_count
         self.stats['right_count'] = right_count
         self.stats['center_count'] = center_count
@@ -664,8 +670,26 @@ class X(Turn,Take_center):
         return obs
 
     def step(self,action):
-        return super(Turn,self).step(action)
+        # return super(Turn,self).step(action) # To n2n
+        # transform action
+        #if action is not None: set_trace()
+        if action is None:
+            state, reward, done, info = self.raw_step(None)
+        else:
+            action = self._transform_high_lvl_action(action)
+
+            # execute transformed action
+            state, reward, done, info = action(self,self.state)
+
+        return state, reward, done, info
     
+    def _transform_high_lvl_action(self,action):
+        if action == 0:
+            action = self.actions['turn']
+        elif action == 1:
+            action = self.actions['take_center']
+        return action
+
     def weak_reset(self):
         raise NotImplementedError
 
