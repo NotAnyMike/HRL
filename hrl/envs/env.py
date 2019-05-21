@@ -43,6 +43,7 @@ class Base(CarRacing):
                 reward_fn=reward_fn,
                 random_obstacle_x_position=False,
                 random_obstacle_shape=False,
+                load_tracks_from="tracks",
                 *args,
                 **kwargs,
                 )

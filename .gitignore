@@ -2,6 +2,6 @@ __pycache__/
 *.swp
 *.egg-info
 
-/experiments/
+experiments/
 tracks/
 .DS_Store
