@@ -619,15 +619,16 @@ class X(Turn,Take_center):
             total_tracks_generated=0,
             is_current_type_side=None, 
             reward_fn=None, 
+            id='X',
             *args, **kwargs):
+
         def reward_fn(env):
             if env.is_current_type_side:
                 return env._reward_fn_side(env)
             else:
                 return env._reward_fn_center(env)
 
-        super(X,self).__init__(*args,**kwargs)
-        self.ID = 'X'
+        super(X,self).__init__(id=id,*args,**kwargs)
         self.is_current_type_side = is_current_type_side
         self.reward_fn = reward_fn
         self.reward_fn_X = reward_fn
