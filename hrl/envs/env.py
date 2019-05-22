@@ -6,7 +6,6 @@ from gym import spaces
 from gym.envs.box2d.car_racing import play, TILE_NAME, default_reward_callback, SOFT_NEG_REWARD, HARD_NEG_REWARD, WINDOW_W, WINDOW_H, TRACK_WIDTH
 from pdb import set_trace
 from pyglet import gl
-from pyglet.window import key
 
 from hrl.common.arg_extractor import get_env_args
 from hrl.envs import env as environments
@@ -54,27 +53,30 @@ class Base(CarRacing):
         self.stats = {}
 
     def _key_press(self,k,mod):
-        if k == key.B: # B from dashBoard
-            if self.visualiser_process == None:
-                # Create visualiser
-                self.connection, child_conn = mp.Pipe()
-                to_pickle = lambda: Plotter()
-                args = (PickleWrapper(to_pickle),child_conn)
-                self.ctx = mp.get_context('spawn')
-                self.visualiser_process = self.ctx.Process(
-                        target=worker,
-                        args=args,
-                        daemon=True,)
-                self.visualiser_process.start()
+        # to avoid running a process inside a daemon
+        if mp.current_process().name == 'MainProcess':
+            from pyglet.window import key
+            if k == key.B: # B from dashBoard
+                if self.visualiser_process == None:
+                    # Create visualiser
+                    self.connection, child_conn = mp.Pipe()
+                    to_pickle = lambda: Plotter()
+                    args = (PickleWrapper(to_pickle),child_conn)
+                    self.ctx = mp.get_context('spawn')
+                    self.visualiser_process = self.ctx.Process(
+                            target=worker,
+                            args=args,
+                            daemon=True,)
+                    self.visualiser_process.start()
 
-                self.connection.send(("add_active_policies",
-                        [[self.active_policies],{}]))
-            else:
-                self.visualiser_process.terminate()
-                del self.visualiser_process
-                del self.connection
-                del self.ctx
-                self.visualiser_process = None
+                    self.connection.send(("add_active_policies",
+                            [[self.active_policies],{}]))
+                else:
+                    self.visualiser_process.terminate()
+                    del self.visualiser_process
+                    del self.connection
+                    del self.ctx
+                    self.visualiser_process = None
 
         super(Base,self)._key_press(k,mod)
 
