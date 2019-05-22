@@ -5,11 +5,11 @@ from stable_baselines import PPO2
 from stable_baselines.common.vec_env import DummyVecEnv
 
 class Policy:
-    def __init__(self,weights):
+    def __init__(self,weights,id=None):
         self.model = PPO2.load(weights)
         self.max_steps = 40
         self.n = 0
-        self.ID = None
+        self.id = id
 
     def __call__(self,env,state):
         action_rwrd = 0
@@ -18,16 +18,21 @@ class Policy:
         self.n = 0
 
         obs = state
-        env.add_active_policy(self.ID)
+        env.add_active_policy(self.id)
+        done = self._done(env)
         while self.n == 0 or (not self._done(env) and not done):
             action, _states = self.model.predict(obs)
-            obs,rewards,done,info = env.raw_step(action)
+            obs,rewards,done,info = self._raw_step(env,obs,action)
 
             action_rwrd += rewards
             self.n += 1
-        env.remove_active_policy(self.ID)
+        env.remove_active_policy(self.id)
 
         return obs,action_rwrd,done,info
+
+    def _raw_step(self,env,obs,action):
+        obs, rewards, done, info = env.raw_step(action)
+        return obs,rewards,done,info
 
     def _done(self,env):
         # The conditions are
@@ -50,20 +55,29 @@ class Policy:
 
 class Turn_left(Policy):
     def __init__(self):
-        super(Turn_left, self).__init__("hrl/weights/Turn_left/v1.0.pkl")
-        self.ID = "TL"
+        super(Turn_left, self).__init__("hrl/weights/Turn_left/v1.0.pkl",id='TL')
 
 class Turn_right(Policy):
     def __init__(self):
-        super(Turn_right, self).__init__("hrl/weights/Turn_right/v1.0.pkl")
-        self.ID = "TR"
+        super(Turn_right, self).__init__("hrl/weights/Turn_right/v1.0.pkl",id='TR')
 
 class Take_center(Policy):
     def __init__(self):
-        super(Take_center, self).__init__("hrl/weights/Take_center/v1.0.pkl")
-        self.ID = "TC"
+        super(Take_center, self).__init__("hrl/weights/Take_center/v1.0.pkl",id='TC')
 
 class Turn(Policy):
     def __init__(self):
-        super(Turn, self).__init__("hrl/weights/Turn/v1.0.pkl")
-        self.ID = "TR"
+        super(Turn, self).__init__("hrl/weights/Turn/v1.0.pkl",id='T')
+
+        self.turn_left = Turn_left()
+        self.turn_right = Turn_right()
+
+    def _raw_step(self,env,obs,action):
+        if action == 0:
+            obs,reward,done,info = self.turn_left(env,obs)
+        elif action == 1:
+            obs,reward,done,info = self.turn_right(env,obs)
+        else:
+            raise Exception("Action %i not implemented" % action)
+        return obs,reward,done,info
+        

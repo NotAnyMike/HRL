@@ -440,7 +440,7 @@ class Turn_n2n(Turn):
 class Take_center(Base):
     def __init__(self, id='TC', reward_fn=None, max_time_out=1.0,*args, **kwargs):
         def reward_fn(env):
-            reward = -SOFT_NEG_REWARD*0
+            reward = -SOFT_NEG_REWARD
             done = False
 
             right_old  = env.info['count_right_delay']  > 0
