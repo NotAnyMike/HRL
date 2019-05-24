@@ -53,17 +53,21 @@ class Policy:
 
         return done
 
+
 class Turn_left(Policy):
     def __init__(self):
         super(Turn_left, self).__init__("hrl/weights/Turn_left/v1.0.pkl",id='TL')
+
 
 class Turn_right(Policy):
     def __init__(self):
         super(Turn_right, self).__init__("hrl/weights/Turn_right/v1.0.pkl",id='TR')
 
+
 class Take_center(Policy):
     def __init__(self):
         super(Take_center, self).__init__("hrl/weights/Take_center/v1.0.pkl",id='TC')
+
 
 class Turn(Policy):
     def __init__(self):
@@ -81,3 +85,23 @@ class Turn(Policy):
             raise Exception("Action %i not implemented" % action)
         return obs,reward,done,info
         
+
+class Y(policy):
+    def __init__(self):
+        self.id = 'Y'
+        self.turn = Turn()
+
+    def __call__(self,env,state):
+        obs = state
+        env.add_active_policy(self.id)
+        obs,rewards,done,info = self._raw_step(env,obs,0)
+        env.remove_active_policy(self.id)
+
+        return obs,action_rwrd,done,info
+
+    def _raw_step(self,env,obs,action):
+        if action == 0:
+            obs,reward,done,info = self.turn(env,obs)
+        else:
+            raise Exception("Action %i not implemented" % action)
+        return obs,reward,done,info
