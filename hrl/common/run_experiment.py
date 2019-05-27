@@ -1,5 +1,7 @@
 import os
 import shutil
+import psutil
+import sys
 from pdb import set_trace
 from copy import deepcopy,copy
 
@@ -175,6 +177,21 @@ class Callback:
     def set_bars(self, global_bar):
         self.global_bar = global_bar
 
+    def _get_stats(self):
+        pid = os.getpid()
+        process = psutil.Process(pid)
+
+        with process.oneshot():
+            mem = process.memory_info()[0]
+
+        for child in process.children():
+            with child.oneshot():
+                mem += child.memory_info()[0]
+
+        mem /= (2**30)
+        
+        return mem
+
     def __call__(self, local_vars, global_vars):
         current_step = int(self.n + local_vars['self'].num_timesteps)
         self.global_bar.update(current_step - self.last_step)
@@ -188,18 +205,17 @@ class Callback:
                 self.last_step_saved = current_step
                 local_vars['self'].save(self.experiment_folder + '/weights_'+str(current_step))
 
+            mem = self._get_stats()
+
             # Log actions taken
             self.logger.log_histogram('episode/actions', local_vars['actions'], current_step)
+            self.logger.log_value("resources/ram",mem, current_step)
 
             # Reward also because the normal logger does not log every episode
             #self.logger.log_value('episode/ep_reward', local_vars['true_reward'], current_step)
 
             # Log num steps
             #self.logger.log_value('episode/ep_steps', local_vars['steps'], current_step)
-
-            # TODO
-            # Log speed
-            # Log angle
 
         self.last_step = current_step
         if current_step >= local_vars['total_timesteps']: return False

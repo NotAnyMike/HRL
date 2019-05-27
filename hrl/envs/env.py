@@ -6,7 +6,6 @@ from gym import spaces
 from gym.envs.box2d.car_racing import play, TILE_NAME, default_reward_callback, SOFT_NEG_REWARD, HARD_NEG_REWARD, WINDOW_W, WINDOW_H, TRACK_WIDTH
 from pdb import set_trace
 from pyglet import gl
-from pyglet.window import key
 
 from hrl.common.arg_extractor import get_env_args
 from hrl.envs import env as environments
@@ -53,29 +52,32 @@ class Base(CarRacing):
         self.ID = id
         self.active_policies = set([self.ID])
         self.stats = {}
-
+    
     def _key_press(self,k,mod):
-        if k == key.B: # B from dashBoard
-            if self.visualiser_process == None:
-                # Create visualiser
-                self.connection, child_conn = mp.Pipe()
-                to_pickle = lambda: Plotter()
-                args = (PickleWrapper(to_pickle),child_conn)
-                self.ctx = mp.get_context('spawn')
-                self.visualiser_process = self.ctx.Process(
-                        target=worker,
-                        args=args,
-                        daemon=True,)
-                self.visualiser_process.start()
+        # to avoid running a process inside a daemon
+        if mp.current_process().name == 'MainProcess':
+            from pyglet.window import key
+            if k == key.B: # B from dashBoard
+                if self.visualiser_process == None:
+                    # Create visualiser
+                    self.connection, child_conn = mp.Pipe()
+                    to_pickle = lambda: Plotter()
+                    args = (PickleWrapper(to_pickle),child_conn)
+                    self.ctx = mp.get_context('spawn')
+                    self.visualiser_process = self.ctx.Process(
+                            target=worker,
+                            args=args,
+                            daemon=True,)
+                    self.visualiser_process.start()
 
-                self.connection.send(("add_active_policies",
-                        [[self.active_policies],{}]))
-            else:
-                self.visualiser_process.terminate()
-                del self.visualiser_process
-                del self.connection
-                del self.ctx
-                self.visualiser_process = None
+                    self.connection.send(("add_active_policies",
+                            [[self.active_policies],{}]))
+                else:
+                    self.visualiser_process.terminate()
+                    del self.visualiser_process
+                    del self.connection
+                    del self.ctx
+                    self.visualiser_process = None
 
         super(Base,self)._key_press(k,mod)
 
@@ -92,11 +94,12 @@ class Base(CarRacing):
         if self.visualiser_process is not None:
             self.connection.send(("remove_active_policy", [[policy_name],{}]))
 
+
 class Turn_side(Base):
     def __init__(self, 
             high_level=False, 
             id='T', 
-            max_time_outo=1.0, 
+            max_time_out=1.0, 
             max_step_reward=10, 
             allow_outside=False,
             reward_function=None,
@@ -155,6 +158,7 @@ class Turn_side(Base):
                 reward_fn=reward_fn,
                 high_level=high_level, 
                 allow_outside=allow_outside,
+                max_step_reward=max_step_reward,
                 id=id,
                 *args, 
                 **kwargs,
@@ -342,17 +346,20 @@ class Turn_side(Base):
             else:
                 del self._current_nodes[id]
 
+
 class Turn_left(Turn_side):
     def __init__(self,id='TL'):
         super(Turn_left,self).__init__(id=id)
         self._flow = 1
         self._direction = 'left'
 
+
 class Turn_right(Turn_side):
     def __init__(self,id='TR'):
         super(Turn_right,self).__init__(id=id)
         self._flow = -1
         self._direction = 'right'
+
 
 class Turn(Turn_side):
     def __init__(self,id='T',high_level=True,*args,**kwargs):
@@ -423,6 +430,7 @@ class Turn(Turn_side):
     def _render_additional_objects(self):
         self._render_side_arrow()
 
+
 class Turn_n2n(Turn):
     def __init__(self,id='T',*args,**kwargs):
         super(Turn,self).__init__(id=id,*args,**kwargs)
@@ -436,10 +444,12 @@ class Turn_n2n(Turn):
     def step(self,action):
         return super(Turn,self).step(action)
 
+
 class Take_center(Base):
     def __init__(self, id='TC', reward_fn=None, max_time_out=1.0,*args, **kwargs):
+
         def reward_fn(env):
-            reward = -SOFT_NEG_REWARD*0
+            reward = -SOFT_NEG_REWARD
             done = False
 
             right_old  = env.info['count_right_delay']  > 0
@@ -610,6 +620,7 @@ class Take_center(Base):
     def _render_additional_objects(self):
         self._render_center_arrow()
 
+
 class X(Turn,Take_center):
     def __init__(self, 
             left_count=0,
@@ -618,14 +629,17 @@ class X(Turn,Take_center):
             total_tracks_generated=0,
             is_current_type_side=None, 
             reward_fn=None, 
+            max_step_reward=10,
+            id='X',
             *args, **kwargs):
+
         def reward_fn(env):
             if env.is_current_type_side:
                 return env._reward_fn_side(env)
             else:
                 return env._reward_fn_center(env)
 
-        super(X,self).__init__(*args,**kwargs)
+        super(X,self).__init__(id=id,max_step_reward=max_step_reward,*args,**kwargs)
         self.is_current_type_side = is_current_type_side
         self.reward_fn = reward_fn
         self.reward_fn_X = reward_fn
@@ -638,6 +652,8 @@ class X(Turn,Take_center):
         self.stats['right_count'] = right_count
         self.stats['center_count'] = center_count
         self.stats['total_tracks_generated'] = total_tracks_generated
+
+        self.tracks_df = self.tracks_df[self.tracks_df['x'] == True]
 
     def reset(self):
         while True:
@@ -706,6 +722,40 @@ class X(Turn,Take_center):
             self._render_side_arrow()
         else:
             self._render_center_arrow()
+
+
+class X_n2n(X):
+    def __init__(self, 
+            left_count=0,
+            right_count=0,
+            center_count=0,
+            total_tracks_generated=0,
+            is_current_type_side=None, 
+            reward_fn=None, 
+            max_step_reward=10,
+            *args, **kwargs):
+
+        def reward_fn(env):
+            if env.is_current_type_side:
+                reward,full_reward,done = env._reward_fn_side(env)
+            else:
+                reward,full_reward,done = env._reward_fn_center(env)
+            return reward,full_reward,done
+
+        super(X,self).__init__(id=id,max_step_reward=max_step_reward,*args,**kwargs)
+        self.is_current_type_side = is_current_type_side
+        self.reward_fn = reward_fn
+        self.reward_fn_X = reward_fn
+
+        self.stats['left_count'] = left_count
+        self.stats['right_count'] = right_count
+        self.stats['center_count'] = center_count
+        self.stats['total_tracks_generated'] = total_tracks_generated
+
+        self.tracks_df = self.tracks_df[self.tracks_df['x'] == True]
+
+    def step(self,action):
+        return self.raw_step(action) # To n2n
 
 
 if __name__=='__main__':
