@@ -1,6 +1,4 @@
 import multiprocessing as mp
-import tracemalloc
-import resource
 
 import numpy as np
 from gym.envs.box2d import CarRacing
@@ -53,21 +51,6 @@ class Base(CarRacing):
         self.ID = id
         self.active_policies = set([self.ID])
         self.stats = {}
-
-        self.T = 0
-        tracemalloc.start(10)
-
-    #def reset(self):
-    #    to_return = super().reset()
-    #    self.T += 1
-    #    if self.T % 10 == 0:
-    #        #snapshot = tracemalloc.take_snapshot()
-    #        #top_stats = snapshot.statistics('lineno')
-    #        #print("\n\ntop 10")
-    #        ##for stat in top_stats[:10]:
-    #            #print(stat)
-    #        print('Memory usage: %s (kb)' % resource.getrusage(resource.RUSAGE_SELF).ru_maxrss)
-    #    return to_return
     
     def _key_press(self,k,mod):
         # to avoid running a process inside a daemon

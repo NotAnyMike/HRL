@@ -86,7 +86,7 @@ class Turn(Policy):
         return obs,reward,done,info
         
 
-class Y(policy):
+class Y(Policy):
     def __init__(self):
         self.id = 'Y'
         self.turn = Turn()
