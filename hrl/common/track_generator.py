@@ -10,7 +10,7 @@ from PIL import Image
 from hrl.envs.env import Base
 
 def worker(connection):
-    env = Base()
+    env = Base(load_tracks_from=None)
     env.change_zoom()
     while True:
         env.reset()

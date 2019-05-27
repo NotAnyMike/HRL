@@ -24,6 +24,7 @@ class Base(CarRacing):
             auto_render=False,
             high_level=False,
             id='Nav',
+            load_tracks_from="tracks",
             *args,
             **kwargs,
             ):
@@ -43,7 +44,7 @@ class Base(CarRacing):
                 reward_fn=reward_fn,
                 random_obstacle_x_position=False,
                 random_obstacle_shape=False,
-                load_tracks_from="tracks",
+                load_tracks_from=load_tracks_from,
                 *args,
                 **kwargs,
                 )
@@ -712,5 +713,6 @@ if __name__=='__main__':
     env = getattr(environments, args.env)()
     if env.high_level: env.auto_render = True
     play(env)
+
 
 
