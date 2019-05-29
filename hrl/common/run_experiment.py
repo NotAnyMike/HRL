@@ -44,8 +44,8 @@ def run_experiment(
 
     args['env_config'] = str(env.env_method("get_org_config")[0])
 
-    if os.path.exists('to_delete'):
-        shutil.rmtree('to_delete')
+    if os.path.exists(folder + '/to_delete'):
+        shutil.rmtree(folder + '/to_delete')
     
     # Check if folder exists and is a valid name
     if not not_save:
@@ -154,7 +154,7 @@ def run_experiment(
             df.drop(df.index[id],inplace=True)
             df.to_csv(experiment_csv)
 
-            os.rename(experiment_folder, 'to_delete/')
+            os.rename(experiment_folder, folder + '/to_delete/')
         else:
             if not not_save:
                 model.save(experiment_folder+"/weights_final")
