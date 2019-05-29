@@ -25,7 +25,7 @@ class Base(CarRacing):
             id='Nav',
             load_tracks_from="tracks",
             *args,
-            **kwargs,
+            **kwargs
             ):
         super(Base,self).__init__(
                 allow_reverse=False, 
