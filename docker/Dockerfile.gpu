@@ -1,0 +1,68 @@
+FROM nvidia/cuda:10.0-base
+#10.0-cudnn7-runtime-ubuntu16.04
+
+#FROM tensorflow/tensorflow:latest-gpu-py3
+
+RUN apt-get update && apt-get install -y \
+	python3.6 \
+	vim \
+	wget \
+	git \
+	python-dev \
+	swig \
+	ffmpeg \
+	freeglut3-dev \
+	xvfb
+RUN update-alternatives --install /usr/bin/python python /usr/bin/python3.6 1
+RUN apt-get install -y \
+	python3-pip \
+	python3-dev \
+	libopenmpi-dev \
+	zlib1g-dev \
+	cmake \
+	libglib2.0-0 \
+	libsm6 \
+	libxext6 \
+	libfontconfig1 \
+	libxrender1 \
+	cmake
+RUN pip3 install --upgrade pip
+RUN pip3 install \
+		numpy \
+		pandas \
+		mpi4py \
+		cloudpickle \
+		networkx \
+		pygame \
+		tensorflow-gpu \
+		tensorboard \
+		tensorboard_logger \
+		matplotlib \
+		pillow \
+		psutil \
+		opencv-python
+
+RUN \
+	git clone https://github.com/notanymike/stable-baselines && \
+	cd stable-baselines && \
+	pip install -e . \
+	&& cd ..
+
+RUN \
+	git clone https://github.com/notanymike/gym && \
+	cd gym && \
+	pip install -e '.[Box2D]' \
+	&& cd ..
+
+RUN \
+	git clone https://github.com/notanymike/HRL && \
+	cd HRL && \
+	pip install -e .
+# Generate tracks TODO
+
+COPY entrypoint.sh /tmp/
+ENTRYPOINT ["/tmp/entrypoint.sh"]
+
+# Change dir TODO
+
+CMD /bin/bash
