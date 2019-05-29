@@ -11,7 +11,7 @@ from hrl.envs.env import Base
 from hrl.common.arg_extractor import get_track_generator_args
 
 def worker(connection):
-    env = Base()
+    env = Base(load_tracks_from=None)
     env.change_zoom()
     while True:
         env.reset()
