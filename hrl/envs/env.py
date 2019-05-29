@@ -44,7 +44,7 @@ class Base(CarRacing):
                 random_obstacle_shape=False,
                 load_tracks_from="tracks",
                 *args,
-                **kwargs,
+                **kwargs
                 )
         self.high_level = high_level
         self.visualiser_process = None

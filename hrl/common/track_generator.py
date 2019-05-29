@@ -8,6 +8,7 @@ import tqdm
 from PIL import Image
 
 from hrl.envs.env import Base
+from hrl.common.arg_extractor import get_track_generator_args
 
 def worker(connection):
     env = Base()
@@ -78,7 +79,12 @@ def generate_tracks(n_tracks,n_cpu):
             process.terminate()
 
 if __name__=='__main__':
-    n_tracks = int(input("\nHow many tracks to generate? (eg. 10000) "))
-    n_cpu    = int(input("How many cpus to run on? (min: 1) "))
+
+    args = get_track_generator_args()
+
+    #n_tracks = int(input("\nHow many tracks to generate? (eg. 10000) "))
+    #n_cpu    = int(input("How many cpus to run on? (min: 1) "))
+    n_tracks = args.n
+    n_cpu    = args.cpu
 
     generate_tracks(n_tracks,n_cpu)

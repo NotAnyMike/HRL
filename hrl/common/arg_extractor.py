@@ -104,6 +104,18 @@ def get_load_args():
     
     return args
 
+def get_track_generator_args():
+    parser = argparse.ArgumentParser(
+        description='This will parse the argument used to generate tracks')
+
+    parser.add_argument('--n', '-n', type=int, default=10000,
+            help="The number of tracks to generate")
+    parser.add_argument('--cpu', '-c', type=int, default=1,
+            help="The number of cpus to use in parallel")
+    args = parser.parse_args()
+
+    return args
+
 def get_env_args():
     parser = argparse.ArgumentParser(
         description='This will parse the argument used in \
