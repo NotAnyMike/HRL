@@ -31,6 +31,10 @@ The function `run_experiment` takes several different arguments, here it is a ta
 
 The only important argument to give is the name of the experiment, e.g. `-e 5`, that will run the last saved weights with the base environemnt.
 
+### Docker
+
+You can use the model `xvfb-run -a -s "-screen 0 1400x900x24 +extension RANDR" --`
+
 ---
 
 ## IDEAS
