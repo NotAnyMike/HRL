@@ -58,7 +58,7 @@ def run_experiment(
 
         # Load cvs of experiments
         experiment_csv = '/'.join([folder, "experiments.csv"])
-        print(os.listxattr(".."))
+        print(os.getcwd())
         if os.path.isfile(experiment_csv):
             print(" - Loading experiments.csv file")
             df = pd.read_csv(experiment_csv, index_col=0)

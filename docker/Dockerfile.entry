@@ -1,0 +1,4 @@
+FROM hrl_noentry
+COPY entrypoint.sh /tmp/
+ENTRYPOINT ["/tmp/entrypoint.sh"]
+CMD /bin/bash

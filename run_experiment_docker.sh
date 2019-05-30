@@ -8,5 +8,5 @@ echo $cmd_line
 
 
 sudo docker run -it --runtime=nvidia --rm --network host --ipc=host \
-  --mount src=$(pwd)/outside_experiments,target=/outside_experiments,type=bind hrl_cudnn\
-  bash -c "cd /HRL/ && $cmd_line"
+  --mount src=$(pwd)/experiments,target=/HRL/outside_experiments,type=bind hrl_entry \
+  bash -c "cd /HRL && $cmd_line"

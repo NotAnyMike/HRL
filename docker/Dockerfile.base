@@ -1,6 +1,15 @@
-FROM nvidia/cuda:10.0-cudnn7-runtime-ubuntu16.04
+# This docker file takes care of installing all
+# the requisites and all the repos used, but does
+# not take care of the display
+# --------
+# Instructions: To build this img copy the tracks
+# folder inside docker and pass the docker folder
+# as context, after that remove the folder
+# docker/tracks because it can slow things down in
+# future builds.
+# After building this img build Dockerfile.entry
 
-#FROM tensorflow/tensorflow:latest-gpu-py3
+FROM nvidia/cuda:10.0-cudnn7-runtime-ubuntu16.04
 
 RUN apt-get update && apt-get install -y \
 	python3.5 \
@@ -25,8 +34,9 @@ RUN apt-get update && apt-get install -y \
 	cmake \
 	python3-tk
 RUN update-alternatives --install /usr/bin/python python /usr/bin/python3.5 1
-RUN pip3 install --upgrade pip && \
-	pip3 install \
+# pip upgrade has to be in its own RUN
+RUN pip3 install --upgrade pip 
+RUN pip3 install \
 		numpy \
 		pandas \
 		mpi4py \
@@ -61,6 +71,3 @@ RUN \
 	#python hrl/common/track_generator.py --n 3000 --cpu 1
 	
 COPY /tracks/ /HRL/tracks
-COPY entrypoint.sh /tmp/
-ENTRYPOINT ["/tmp/entrypoint.sh"]
-CMD /bin/bash
