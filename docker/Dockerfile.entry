@@ -1,4 +1,4 @@
-FROM hrl_noentry
+FROM notanymike/hrl_base
 COPY entrypoint.sh /tmp/
 ENTRYPOINT ["/tmp/entrypoint.sh"]
 CMD /bin/bash
