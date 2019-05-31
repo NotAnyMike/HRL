@@ -2,8 +2,8 @@ import multiprocessing as mp
 
 import numpy as np
 from gym.envs.box2d import CarRacing
+from gym.envs.box2d.car_racing import play, default_reward_callback, TILE_NAME, SOFT_NEG_REWARD, HARD_NEG_REWARD, WINDOW_W, WINDOW_H, TRACK_WIDTH
 from gym import spaces
-from gym.envs.box2d.car_racing import play, TILE_NAME, default_reward_callback, SOFT_NEG_REWARD, HARD_NEG_REWARD, WINDOW_W, WINDOW_H, TRACK_WIDTH
 from pdb import set_trace
 from pyglet import gl
 
@@ -756,6 +756,47 @@ class X_n2n(X):
 
     def step(self,action):
         return self.raw_step(action) # To n2n
+
+
+class Keep_lane(Base):
+# Can start in the perfect position of each lane,
+# If gets out of track -100 and the other normal termination policies
+# If touches the other lane r=0
+    def __init__(self, id='KL', allow_outside=False, *args,**kwargs):
+        def reward_fn(env):
+            # Making ignore the obstacles
+            env.obstacle_contacts['count_delay'] = 0
+            env.obstacle_contacts['count'] = 0
+
+            # if touching other track reward = 0
+            in_other_lane = 1
+            if env.keeping_left:
+                if env.info['count_right_delay'].sum() > 0:
+                    in_other_lane=0
+            else:
+                if env.info['count_left_delay'].sum() > 0:
+                    in_other_lane=0
+
+            # calculate normal reward
+            reward,full_reward,done = default_reward_callback(env)
+
+            # if close to an intersection done=True
+            # TODO
+
+            if reward > 0:
+                reward *= in_other_lane
+                full_reward *= in_other_lane
+            return reward,full_reward,done
+
+        super(Keep_lane, self).__init__(*args, **kwargs, id=id, allow_outside=allow_outside)
+
+        self.reward_fn = reward_fn
+
+    def reset(self):
+        self.keeping_left = True if np.random.uniform() >= 0.5 else False
+
+        # Place the agent randomly in a good position
+        return super(Keep_lane,self).reset()
 
 
 if __name__=='__main__':
