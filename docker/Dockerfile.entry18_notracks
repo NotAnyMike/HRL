@@ -1,0 +1,4 @@
+FROM notanymike/hrl_base18_notracks
+COPY entrypoint.sh /tmp/
+ENTRYPOINT ["/tmp/entrypoint.sh"]
+CMD /bin/bash

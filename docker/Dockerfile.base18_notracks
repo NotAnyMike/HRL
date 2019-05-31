@@ -1,0 +1,72 @@
+# This docker file takes care of installing all
+# the requisites and all the repos used, but does
+# not take care of the display
+# --------
+# Instructions: To build this img copy the tracks
+# folder inside docker and pass the docker folder
+# as context, after that remove the folder
+# docker/tracks because it can slow things down in
+# future builds.
+# After building this img build Dockerfile.entry
+
+FROM nvidia/cuda:10.0-cudnn7-runtime-ubuntu18.04
+
+ARG DEBIAN_FRONTEND=noninteractive
+RUN apt-get update && apt-get install -y \
+	python3.6 \
+	vim \
+	wget \
+	git \
+	python-dev \
+	swig \
+	ffmpeg \
+	freeglut3-dev \
+	xvfb \
+	python3-pip \
+	python3-dev \
+	libopenmpi-dev \
+	zlib1g-dev \
+	cmake \
+	libglib2.0-0 \
+	libsm6 \
+	libxext6 \
+	libfontconfig1 \
+	libxrender1 \
+	cmake \
+	python3-tk
+RUN update-alternatives --install /usr/bin/python python /usr/bin/python3.6 1
+# pip upgrade has to be in its own RUN
+RUN pip3 install --upgrade pip 
+RUN pip install \
+		numpy \
+		pandas \
+		mpi4py \
+		cloudpickle \
+		networkx \
+		pygame \
+		tensorflow-gpu \
+		tensorboard \
+		tensorboard_logger \
+		matplotlib \
+		pillow \
+		psutil \
+		opencv-python \
+		pynput
+
+RUN \
+	git clone https://github.com/notanymike/stable-baselines && \
+	cd stable-baselines && \
+	pip install -e . \
+	&& cd ..
+
+RUN \
+	git clone https://github.com/notanymike/gym && \
+	cd gym && \
+	pip install -e '.[Box2D]' \
+	&& cd ..
+
+RUN \
+	git clone https://github.com/notanymike/HRL && \
+	cd HRL && \
+	pip install -e .
+	#python hrl/common/track_generator.py --n 3000 --cpu 1
