@@ -813,8 +813,8 @@ class Keep_lane(Base):
             if not self._is_close_to_intersection(tile_id,8):
                 break
 
-        _,beta,x,y = self._get_rnd_position_inside_lane(tile_id,discrete=True)
-        # TODO put the car in the right lane
+        _,beta,x,y = self._get_position_inside_lane(
+                tile_id, x_pos=self.keeping_left ,discrete=True)
         self.place_agent([beta,x,y])
 
         return True
