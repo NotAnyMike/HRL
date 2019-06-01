@@ -298,7 +298,6 @@ class Turn_side(Base):
         self.new = True
         return Ok
 
-
     def _weak_reset_side(self):
         """
         This function takes care of ALL the processes to reset the 
@@ -759,9 +758,6 @@ class X_n2n(X):
 
 
 class Keep_lane(Base):
-# Can start in the perfect position of each lane,
-# If gets out of track -100 and the other normal termination policies
-# If touches the other lane r=0
     def __init__(self, id='KL', allow_outside=False, *args,**kwargs):
         def reward_fn(env):
             # Making ignore the obstacles
@@ -777,11 +773,19 @@ class Keep_lane(Base):
                 if env.info['count_left_delay'].sum() > 0:
                     in_other_lane=0
 
+            # if close to an intersection done=True
+            _done = False
+            for tile in np.where(
+                    (self.info['count_left_delay'] > 0) \
+                        | (self.info['count_right_delay'] > 0))[0]:
+                if self._is_close_to_intersection(tile):
+                    _done = True
+                    break
+
             # calculate normal reward
             reward,full_reward,done = default_reward_callback(env)
 
-            # if close to an intersection done=True
-            # TODO
+            done = done if not _done else _done
 
             if reward > 0:
                 reward *= in_other_lane
@@ -789,21 +793,66 @@ class Keep_lane(Base):
             return reward,full_reward,done
 
         super(Keep_lane, self).__init__(*args, **kwargs, id=id, allow_outside=allow_outside)
-
         self.reward_fn = reward_fn
 
     def reset(self):
         self.keeping_left = True if np.random.uniform() >= 0.5 else False
 
-        # Place the agent randomly in a good position
-        return super(Keep_lane,self).reset()
+        while True:
+            obs = super(Keep_lane,self).reset()
+            if obs is not False:
+                if self._weak_reset_keep_lane():
+                    break
 
+        return self.step(None)[0]
+
+    def _weak_reset_keep_lane(self):
+        # Place the agent randomly in a good position
+        while True:
+            tile_id = np.random.choice(list(range(len(self.track))))
+            if not self._is_close_to_intersection(tile_id,8):
+                break
+
+        _,beta,x,y = self._get_rnd_position_inside_lane(tile_id,discrete=True)
+        # TODO put the car in the right lane
+        self.place_agent([beta,x,y])
+
+        return True
+
+    def _is_close_to_intersection(self,tile_id,spaces=8,direction=1):
+        '''
+        Return true if the tile_id tile is direction spaces from
+        and intersection
+
+        direction = {1,0,-1}, going with the flow or agains it, -
+        means both directions
+        '''
+        if spaces > 0 and direction in [1,0,-1]:
+            track_id = self.info[tile_id]['track']
+            track_len = len(self.tracks[track_id])
+            other_track_len  = sum(self.info['track'] < track_id)
+
+            tile_id_rel =  tile_id - other_track_len
+
+            candidates = [tile_id_rel]
+            if direction in [1,0]:
+                candidates += [tile_id_rel + 1 + i for i in range(spaces)]
+            if direction in [-1,0]:
+                candidates += [tile_id_rel - 1 - i for i in range(spaces)]
+            candidates = [i % track_len for i in candidates]
+            candidates = [i + other_track_len for i in candidates]
+
+            if any(self.info[candidates]['intersection_id'] != -1):
+                return True
+            else:
+                return False
+        else:
+            raise ValueError("Check the attributes used in \
+                    _is_close_to_intersection")
 
 if __name__=='__main__':
     args = get_env_args()
     env = getattr(environments, args.env)()
     if env.high_level: env.auto_render = True
     play(env)
-
-
 
