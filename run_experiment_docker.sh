@@ -9,7 +9,7 @@ echo $cmd_line
 
 nvidia-docker run -it --rm \
   --mount src=$(pwd)/experiments,target=/HRL/outside_experiments,type=bind \
-  --mount src=$(pwd)/tracks2,target=/HRL/tracks,type=bind \
+  --mount src=$(pwd)/tracks,target=/HRL/tracks,type=bind \
   hrl:entry-16.04 \
   bash -c "cd /stable-baselines && git reset --hard && git pull && 
 	cd /gym && git reset --hard && git pull && 
