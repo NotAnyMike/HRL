@@ -1,4 +1,4 @@
-FROM hrl_base16
+FROM hrl:base-16.04
 COPY entrypoint.sh /tmp/
 ENTRYPOINT ["/tmp/entrypoint.sh"]
 CMD /bin/bash

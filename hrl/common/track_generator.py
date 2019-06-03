@@ -18,10 +18,10 @@ def worker(connection):
         obs = env.render('rgb_array')
         connection.send((obs,env.track,env.tracks,env.info))
         
-
 def generate_tracks(n_tracks,n_cpu):
     if not os.path.isdir('tracks'):
         os.makedirs('tracks')
+    if not os.path.isfile("tracks/list.csv"):
         df = pd.DataFrame(columns=['x','t','obstacles'])
     else:
         df = pd.read_csv("tracks/list.csv",index_col=0)
