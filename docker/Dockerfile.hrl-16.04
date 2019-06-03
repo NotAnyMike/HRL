@@ -1,13 +1,6 @@
 # This docker file takes care of installing all
 # the requisites and all the repos used, but does
 # not take care of the display
-# --------
-# Instructions: To build this img copy the tracks
-# folder inside docker and pass the docker folder
-# as context, after that remove the folder
-# docker/tracks because it can slow things down in
-# future builds.
-# After building this img build Dockerfile.entry
 
 FROM nvidia/cuda:9.2-cudnn7-devel
 
@@ -78,5 +71,5 @@ RUN \
 	pip install -e .
 
 COPY entrypoint.sh /tmp/
-ENTRYPOINT ["/tmp/entrypoint.sh"]
+#ENTRYPOINT ["/tmp/entrypoint.sh"]
 CMD /bin/bash
