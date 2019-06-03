@@ -1,0 +1,82 @@
+# This docker file takes care of installing all
+# the requisites and all the repos used, but does
+# not take care of the display
+# --------
+# Instructions: To build this img copy the tracks
+# folder inside docker and pass the docker folder
+# as context, after that remove the folder
+# docker/tracks because it can slow things down in
+# future builds.
+# After building this img build Dockerfile.entry
+
+FROM nvidia/cuda:9.2-cudnn7-devel
+
+RUN \
+	apt-get update && \
+	apt-get install -y wget && \
+	wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh && \
+	bash miniconda.sh -b
+
+ENV PATH=/root/miniconda3/bin:${PATH}
+
+RUN \
+	conda install -y python=3.6 && \
+	apt-get install -y \
+		vim \
+		wget \
+		git \
+		python-dev \
+		swig \
+		ffmpeg \
+		freeglut3-dev \
+		xvfb \
+		libopenmpi-dev \
+		zlib1g-dev \
+		cmake \
+		libglib2.0-0 \
+		libsm6 \
+		libxext6 \
+		libfontconfig1 \
+		libxrender1 \
+		cmake \
+		python3-tk && \
+	apt-get install -y python3-dev && \
+	pip install --upgrade pip && \
+	conda install -y tensorflow-gpu && \
+	conda install -y \
+		numpy \
+		pandas \
+		mpi4py \
+		cloudpickle \
+		networkx \
+		tensorboard \
+		matplotlib \
+		pillow \
+		psutil && \
+	pip install \
+		pygame \
+		tensorboard_logger \
+		opencv-python \
+		pynput \
+		tqdm
+
+RUN \
+	git clone https://github.com/notanymike/gym && \
+	cd gym && \
+	pip install -e '.[Box2D]' \
+	&& cd ..
+
+RUN \
+	git clone https://github.com/notanymike/stable-baselines && \
+	cd stable-baselines && \
+	pip install -e . \
+	&& cd ..
+
+RUN \
+	git clone https://github.com/notanymike/HRL && \
+	cd HRL && \
+	pip install -e .
+
+COPY entrypoint.sh /tmp/
+ENTRYPOINT ["/tmp/entrypoint.sh"]
+CMD /bin/bash
