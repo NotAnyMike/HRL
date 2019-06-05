@@ -54,6 +54,15 @@ class Policy:
         return done
 
 
+class HighPolicy(Policy):
+    def __init__(self,weights,id):
+        super(HighPolicy,self).__init__(weights,id=id)
+        self.actions = []
+
+    def _raw_step(self,env,obs,action):
+        return self.actions[action](env,obs)
+
+
 class Turn_left(Policy):
     def __init__(self):
         super(Turn_left, self).__init__("hrl/weights/Turn_left/v1.0.pkl",id='TL')
@@ -69,22 +78,13 @@ class Take_center(Policy):
         super(Take_center, self).__init__("hrl/weights/Take_center/v1.0.pkl",id='TC')
 
 
-class Turn(Policy):
+class Turn(HighPolicy):
     def __init__(self):
         super(Turn, self).__init__("hrl/weights/Turn/v1.0.pkl",id='T')
 
-        self.turn_left = Turn_left()
-        self.turn_right = Turn_right()
+        self.actions.append(Turn_left())
+        self.actions.append(Turn_right())
 
-    def _raw_step(self,env,obs,action):
-        if action == 0:
-            obs,reward,done,info = self.turn_left(env,obs)
-        elif action == 1:
-            obs,reward,done,info = self.turn_right(env,obs)
-        else:
-            raise Exception("Action %i not implemented" % action)
-        return obs,reward,done,info
-        
 
 class Y(Policy):
     def __init__(self):
@@ -105,3 +105,16 @@ class Y(Policy):
         else:
             raise Exception("Action %i not implemented" % action)
         return obs,reward,done,info
+
+
+class X(HighPolicy):
+    def __init__(self):
+        super(X,self).__init__("hrl/weights/X/v1.0.pkl",id='X')
+
+        self.actions.append(Turn())
+        self.actions.append(Take_center())
+
+
+class Keep_lane(Policy):
+    def __init__(self):
+        super(Keep_lane, self).__init__("hrl/weights/Keep_lane/v0.1.pkl",id='KL')

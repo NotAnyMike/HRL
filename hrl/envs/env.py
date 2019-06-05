@@ -13,6 +13,9 @@ from hrl.policies.policy import Turn_left as Left_policy
 from hrl.policies.policy import Turn_right as Right_policy
 from hrl.policies.policy import Turn as Turn_policy
 from hrl.policies.policy import Take_center as Take_center_policy
+from hrl.policies.policy import Keep_lane as Keep_lane_policy
+from hrl.policies.policy import Y as Y_policy
+from hrl.policies.policy import X as X_policy
 from hrl.common.visualiser import PickleWrapper, Plotter, worker
 
 class Base(CarRacing):
@@ -166,6 +169,7 @@ class Turn_side(Base):
         self.goal_id = None
         self.new = True
         self._reward_fn_side = reward_fn
+        self.tracks_df = self.tracks_df[self.tracks_df['t'] == True]
 
     def update_contact_with_track(self):
         self.update_contact_with_track_side()
@@ -849,6 +853,34 @@ class Keep_lane(Base):
         else:
             raise ValueError("Check the attributes used in \
                     _is_close_to_intersection")
+
+
+class Y(Turn):
+    pass
+
+
+class Nav_without_obs(Keep_lane, X, Y):
+    def __init__(self, id='NWOO', *args, **kwargs):
+        Base.__init__(self, id=id, *args, **kwargs)
+
+        self.actions = {}
+        self.actions['Keep_lane']  = Keep_lane_policy()
+        self.actions['X'] = X_policy()
+        self.actions['Y'] = Y_policy()
+
+    def _set_config(self, **kwargs):
+        Base._set_config(self, **kwargs)
+        self.action_space = spaces.Discrete(3)
+
+    def reset(self):
+        return Base.reset(self)
+
+    def step(self,action):
+        return Base.step(self,action)
+
+    def _render_additional_objects(self):
+        pass
+
 
 if __name__=='__main__':
     args = get_env_args()
