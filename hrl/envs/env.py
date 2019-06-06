@@ -97,6 +97,111 @@ class Base(CarRacing):
         if self.visualiser_process is not None:
             self.connection.send(("remove_active_policy", [[policy_name],{}]))
 
+    def _ignore_obstacles(self):
+        '''
+        Calling this will make every reward function to ignore obstacles,
+        this, has to be called every time a reward function is called, at 
+        the beginning of the function or before it.
+        '''
+        self.obstacle_contacts['count_delay'] = 0
+        self.obstacle_contacts['count'] = 0
+
+    def _check_if_close_to_intersection(self,direction=1):
+        close = False
+        for tile in np.where(
+                (self.info['count_left'] > 0) \
+                    | (self.info['count_right'] > 0))[0]:
+            if self._is_close_to_intersection(tile,direction=direction):
+                close = True
+                break
+        return close
+
+    def _is_close_to_intersection(self,tile_id,spaces=8,direction=1):
+        '''
+        Return true if the tile_id tile is direction spaces from
+        and intersection
+
+        direction = {1,0,-1}, going with the flow or agains it, -
+        means both directions
+        '''
+        intersection_tiles = self.get_close_intersections(
+                tile_id=tile_id,spaces=spaces,direction=direction)
+        return len(intersection_tiles) > 0
+
+    def get_close_intersections(self,tile_id,spaces=8,direction=1):
+        '''
+        Returns a set of the index of the tiles that are space close in
+        the direction direction of tile_id
+        '''
+        if spaces > 0 and direction in [1,0,-1]:
+            track_id = self.info[tile_id]['track']
+            track_len = len(self.tracks[track_id])
+            other_track_len  = sum(self.info['track'] < track_id)
+
+            tile_id_rel =  tile_id - other_track_len
+
+            candidates = [tile_id_rel]
+            if direction in [1,0]:
+                candidates += [tile_id_rel + 1 + i for i in range(spaces)]
+            if direction in [-1,0]:
+                candidates += [tile_id_rel - 1 - i for i in range(spaces)]
+            candidates = [i % track_len for i in candidates]
+            candidates = [i + other_track_len for i in candidates]
+
+            candidates = set(candidates)
+            positive_candidates = candidates.intersection(
+                    np.where(self.info['intersection_id'] != -1)[0])
+            if len(positive_candidates) > 0:
+                return positive_candidates
+            else:
+                return set()
+        else:
+            raise ValueError("Check the attributes used in \
+                    _is_close_to_intersection")
+
+    def _render_center_arrow(self):
+        # Arrow
+        gl.glBegin(gl.GL_TRIANGLES)
+        gl.glColor4f(0.7,0,0,1)
+        gl.glVertex3f(WINDOW_W//2, WINDOW_H-40,0)
+        gl.glVertex3f(WINDOW_W//2-40,WINDOW_H-40-40,0)
+        gl.glVertex3f(WINDOW_W//2+40,WINDOW_H-40-40,0)
+        gl.glEnd()
+
+        # Body
+        gl.glBegin(gl.GL_QUADS)
+        gl.glColor4f(0.7,0,0,1)
+        gl.glVertex3f(WINDOW_W//2+15,WINDOW_H-80,0)
+        gl.glVertex3f(WINDOW_W//2+15,WINDOW_H-80-50,0)
+        gl.glVertex3f(WINDOW_W//2-15,WINDOW_H-80-50,0)
+        gl.glVertex3f(WINDOW_W//2-15,WINDOW_H-80,0)
+        gl.glEnd()
+
+    def _render_side_arrow(self,lat_dir,long_dir):
+        '''
+        lat_dir is left or right
+        long_dir is 1 or -1
+        '''
+        d = 1 if lat_dir == 'right' else 0
+        long_dir = (-1)**d
+
+        # Arrow
+        gl.glBegin(gl.GL_TRIANGLES)
+        gl.glColor4f(0.7,0,0,1)
+        gl.glVertex3f(WINDOW_W*d+long_dir*20, WINDOW_H-80,0)
+        gl.glVertex3f(WINDOW_W*d+long_dir*100,WINDOW_H-80-40,0)
+        gl.glVertex3f(WINDOW_W*d+long_dir*100,WINDOW_H-80+40,0)
+        gl.glEnd()
+
+        # Body
+        gl.glBegin(gl.GL_QUADS)
+        gl.glColor4f(0.7,0,0,1)
+        gl.glVertex3f(WINDOW_W*d+long_dir*100,WINDOW_H-80+15,0)
+        gl.glVertex3f(WINDOW_W*d+long_dir*150,WINDOW_H-80+15,0)
+        gl.glVertex3f(WINDOW_W*d+long_dir*150,WINDOW_H-80-15,0)
+        gl.glVertex3f(WINDOW_W*d+long_dir*100,WINDOW_H-80-15,0)
+        gl.glEnd()
+
 
 class Turn_side(Base):
     def __init__(self, 
@@ -410,25 +515,7 @@ class Turn(Turn_side):
         return action
 
     def _render_side_arrow(self):
-        d = 1 if self._direction == 'right' else 0
-        f = self._flow
-
-        # Arrow
-        gl.glBegin(gl.GL_TRIANGLES)
-        gl.glColor4f(0.7,0,0,1)
-        gl.glVertex3f(WINDOW_W*d+f*20, WINDOW_H-80,0)
-        gl.glVertex3f(WINDOW_W*d+f*100,WINDOW_H-80-40,0)
-        gl.glVertex3f(WINDOW_W*d+f*100,WINDOW_H-80+40,0)
-        gl.glEnd()
-
-        # Body
-        gl.glBegin(gl.GL_QUADS)
-        gl.glColor4f(0.7,0,0,1)
-        gl.glVertex3f(WINDOW_W*d+f*100,WINDOW_H-80+15,0)
-        gl.glVertex3f(WINDOW_W*d+f*150,WINDOW_H-80+15,0)
-        gl.glVertex3f(WINDOW_W*d+f*150,WINDOW_H-80-15,0)
-        gl.glVertex3f(WINDOW_W*d+f*100,WINDOW_H-80-15,0)
-        gl.glEnd()
+        super(Turn,self)._render_side_arrow(self._direction, self._flow)
 
     def _render_additional_objects(self):
         self._render_side_arrow()
@@ -585,7 +672,6 @@ class Take_center(Base):
             return False
         return self._generate_predictions_center(filter)
 
-
     def update_contact_with_track(self):
         self.update_contact_with_track_center()
 
@@ -601,24 +687,6 @@ class Take_center(Base):
                 np.where(right|left)[0]))) > 0:
             #super(Take_center,self).update_contact_with_track()
             self.last_touch_with_track = self.t
-
-    def _render_center_arrow(self):
-        # Arrow
-        gl.glBegin(gl.GL_TRIANGLES)
-        gl.glColor4f(0.7,0,0,1)
-        gl.glVertex3f(WINDOW_W//2, WINDOW_H-40,0)
-        gl.glVertex3f(WINDOW_W//2-40,WINDOW_H-40-40,0)
-        gl.glVertex3f(WINDOW_W//2+40,WINDOW_H-40-40,0)
-        gl.glEnd()
-
-        # Body
-        gl.glBegin(gl.GL_QUADS)
-        gl.glColor4f(0.7,0,0,1)
-        gl.glVertex3f(WINDOW_W//2+15,WINDOW_H-80,0)
-        gl.glVertex3f(WINDOW_W//2+15,WINDOW_H-80-50,0)
-        gl.glVertex3f(WINDOW_W//2-15,WINDOW_H-80-50,0)
-        gl.glVertex3f(WINDOW_W//2-15,WINDOW_H-80,0)
-        gl.glEnd()
 
     def _render_additional_objects(self):
         self._render_center_arrow()
@@ -764,9 +832,8 @@ class X_n2n(X):
 class Keep_lane(Base):
     def __init__(self, id='KL', allow_outside=False, *args,**kwargs):
         def reward_fn(env):
-            # Making ignore the obstacles
-            env.obstacle_contacts['count_delay'] = 0
-            env.obstacle_contacts['count'] = 0
+            # Ignore the obstacles
+            env._ignore_obstacles()
 
             # if touching other track reward = 0
             in_other_lane = 1
@@ -778,13 +845,7 @@ class Keep_lane(Base):
                     in_other_lane=0
 
             # if close to an intersection done=True
-            _done = False
-            for tile in np.where(
-                    (self.info['count_left_delay'] > 0) \
-                        | (self.info['count_right_delay'] > 0))[0]:
-                if self._is_close_to_intersection(tile):
-                    _done = True
-                    break
+            _done = env._check_if_close_to_intersection()
 
             # calculate normal reward
             reward,full_reward,done = default_reward_callback(env)
@@ -823,63 +884,94 @@ class Keep_lane(Base):
 
         return True
 
-    def _is_close_to_intersection(self,tile_id,spaces=8,direction=1):
-        '''
-        Return true if the tile_id tile is direction spaces from
-        and intersection
-
-        direction = {1,0,-1}, going with the flow or agains it, -
-        means both directions
-        '''
-        if spaces > 0 and direction in [1,0,-1]:
-            track_id = self.info[tile_id]['track']
-            track_len = len(self.tracks[track_id])
-            other_track_len  = sum(self.info['track'] < track_id)
-
-            tile_id_rel =  tile_id - other_track_len
-
-            candidates = [tile_id_rel]
-            if direction in [1,0]:
-                candidates += [tile_id_rel + 1 + i for i in range(spaces)]
-            if direction in [-1,0]:
-                candidates += [tile_id_rel - 1 - i for i in range(spaces)]
-            candidates = [i % track_len for i in candidates]
-            candidates = [i + other_track_len for i in candidates]
-
-            if any(self.info[candidates]['intersection_id'] != -1):
-                return True
-            else:
-                return False
-        else:
-            raise ValueError("Check the attributes used in \
-                    _is_close_to_intersection")
-
 
 class Y(Turn):
     pass
 
 
-class Nav_without_obs(Keep_lane, X, Y):
+class Nav_without_obs(Base):#Keep_lane, X, Y):
     def __init__(self, id='NWOO', *args, **kwargs):
-        Base.__init__(self, id=id, *args, **kwargs)
+        def reward_fn(env):
+            env._ignore_obstacles()
+            reward,full_reward,done = default_reward_callback(env)
+
+            if False: #in_objective: # TODO
+                # Changing from close to not close
+                self._close_to_intersection_state = False
+                self._directional_state = None
+            return reward,full_reward,done
+
+        Base.__init__(self, id=id, reward_fn=reward_fn, *args, **kwargs)
+
+        self._close_to_intersection_state = False
 
         self.actions = {}
         self.actions['Keep_lane']  = Keep_lane_policy()
         self.actions['X'] = X_policy()
         self.actions['Y'] = Y_policy()
 
-    def _set_config(self, **kwargs):
-        Base._set_config(self, **kwargs)
-        self.action_space = spaces.Discrete(3)
-
     def reset(self):
+        self._directional_state = None
+        self._close_to_intersection_state = False
         return Base.reset(self)
 
     def step(self,action):
+        # if close to an intersection, chose a direction and set a 
+        # goal, all the other points will be a big negative reward
+
+        dirs = set(val \
+                for elm in self._current_nodes.values() \
+                for val in elm.values())
+
+        # Set longitudinal direction
+        if len(dirs) == 1:
+            direction = dirs.pop()
+            self._long_dir = direction
+        else:
+            self._long_dir = None
+
+        if self._long_dir is not None:
+            current_tile = list(self._current_nodes.keys())[0]
+            intersection_tiles = self.get_close_intersections(
+                    current_tile,spaces=8,direction=direction)
+
+            if len(intersection_tiles) > 0:
+                if not self._close_to_intersection_state:
+                    #set_trace()
+                    # changing state to close
+                    self._close_to_intersection_state = True
+
+                    # get direction
+                    print(direction)
+
+                    # Choose positive and negative goals
+                    intersection_tiles = intersection_tiles.intersection(
+                            np.where(self.info['track']==self.info[current_tile]['track'])[0])
+                    intersection_tile = intersection_tiles.pop()
+                    intersection_dict = self.understand_intersection(
+                            intersection_tile,direction)
+
+                    options = ['left','right']
+                    if self.info[intersection_tile]['x'] == True:
+                        options.append('center')
+
+                    self._directional_state = np.random.choice(options)
+
+                    set_trace()
+
+                    # TODO set positive and negative objectives
+
         return Base.step(self,action)
 
     def _render_additional_objects(self):
-        pass
+        if self._close_to_intersection_state == True:
+            # Render the appropiate arrow
+            if self._directional_state == 'center':
+                self._render_center_arrow()
+            elif self._directional_state == 'left':
+                self._render_side_arrow('left',self._long_dir)
+            elif self._directional_state == 'right':
+                self._render_side_arrow('right',self._long_dir)
 
 
 if __name__=='__main__':
