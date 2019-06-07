@@ -274,7 +274,7 @@ class Turn_side(Base):
         self.goal_id = None
         self.new = True
         self._reward_fn_side = reward_fn
-        self.tracks_df = self.tracks_df[self.tracks_df['t'] == True]
+        self.tracks_df = self.tracks_df[(self.tracks_df['t']) | (self.tracks_df['x'])]
 
     def update_contact_with_track(self):
         self.update_contact_with_track_side()
