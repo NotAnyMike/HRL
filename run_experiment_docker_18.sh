@@ -8,7 +8,7 @@ echo $cmd_line
 
 
 #sudo docker run -it --runtime=nvidia --rm --network host --ipc=host \
-sudo docker run --runtime=nvidia -ti \
+docker run --runtime=nvidia -ti \
   --mount src=$(pwd)/experiments,target=/HRL/outside_experiments,type=bind notanymike/hrl_entry18 \
   bash -c "cd /stable-baselines && git reset --hard && git pull && 
 	cd /gym && git reset --hard && git pull && 
