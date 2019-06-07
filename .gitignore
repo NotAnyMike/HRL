@@ -6,3 +6,4 @@ __pycache__/
 experiments/
 tracks/
 .DS_Store
+.ipynb_checkpoints/
