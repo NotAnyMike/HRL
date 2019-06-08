@@ -895,10 +895,19 @@ class Nav_without_obs(Base):#Keep_lane, X, Y):
             env._ignore_obstacles()
             reward,full_reward,done = default_reward_callback(env)
 
-            if False: #in_objective: # TODO
+            current_nodes = list(env._current_nodes.keys())
+            if env._objective in current_nodes:
                 # Changing from close to not close
+                reward = reward + 100
+                full_reward = full_reward + 100
+            if set(current_nodes).intersection(
+                    env._neg_objectives + [env._objective]):
                 self._close_to_intersection_state = False
                 self._directional_state = None
+                self._objective = None
+                self._neg_objectives = []
+
+                # TODO clean visited
             return reward,full_reward,done
 
         Base.__init__(self, id=id, reward_fn=reward_fn, *args, **kwargs)
@@ -913,6 +922,8 @@ class Nav_without_obs(Base):#Keep_lane, X, Y):
     def reset(self):
         self._directional_state = None
         self._close_to_intersection_state = False
+        self._objective = None
+        self._neg_objectives = []
         return Base.reset(self)
 
     def step(self,action):
@@ -951,22 +962,31 @@ class Nav_without_obs(Base):#Keep_lane, X, Y):
                     intersection_dict = self.understand_intersection(
                             intersection_tile,direction)
 
-                    options = ['left','right']
-                    if self.info[intersection_tile]['x'] == True:
-                        options.append('center')
+                    options = [key for key,val in intersection_dict.items() if val is not None]
 
                     self._directional_state = np.random.choice(options)
 
-                    set_trace()
+                    # set positive and negative objectives
+                    for directional, val in intersection_dict.items():
+                        if val is not None:
+                            tmp_id, tmp_flow = val
 
-                    # TODO set positive and negative objectives
+                            track_id = self.info[tmp_id]['track']
+                            track_len = len(self.tracks[track_id])
+                            comp_track_len = sum(self.info['track'] < track_id)
+                            objective = ((tmp_id - comp_track_len + tmp_flow*8) \
+                                    % track_len) + comp_track_len
+                            if directional == self._directional_state:
+                                self._objective = objective
+                            else:
+                                self._neg_objectives.append(objective)
 
         return Base.step(self,action)
 
     def _render_additional_objects(self):
         if self._close_to_intersection_state == True:
             # Render the appropiate arrow
-            if self._directional_state == 'center':
+            if self._directional_state == 'straight':
                 self._render_center_arrow()
             elif self._directional_state == 'left':
                 self._render_side_arrow('left',self._long_dir)
