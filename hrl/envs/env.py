@@ -140,21 +140,29 @@ class Base(CarRacing):
 
             tile_id_rel =  tile_id - other_track_len
 
-            candidates = [tile_id_rel]
-            if direction in [1,0]:
-                candidates += [tile_id_rel + 1 + i for i in range(spaces)]
-            if direction in [-1,0]:
-                candidates += [tile_id_rel - 1 - i for i in range(spaces)]
-            candidates = [i % track_len for i in candidates]
-            candidates = [i + other_track_len for i in candidates]
+            candidates = [] # If tile_id is intersection, this return False
+            stop_0, stop_1 = False, False
+            for i in range(spaces):
+                if direction in [1,0] and not stop_1:
+                    possible_candidate = tile_id_rel + 1 + i
+                    possible_candidate %= track_len
+                    possible_candidate += other_track_len
+                    candidates.append(possible_candidate)
+                    if self.info[possible_candidate]['intersection_id'] != -1:
+                        stop_1 = True
+                if direction in [-1,0] and not stop_0:
+                    possible_candidate = tile_id_rel - 1 - i
+                    possible_candidate %= track_len
+                    possible_candidate += other_track_len
+                    candidates.append(possible_candidate)
+                    if self.info[possible_candidate]['intersection_id'] != -1:
+                        stop_0 = True
 
             candidates = set(candidates)
             positive_candidates = candidates.intersection(
                     np.where(self.info['intersection_id'] != -1)[0])
-            if len(positive_candidates) > 0:
-                return positive_candidates
-            else:
-                return set()
+
+            return positive_candidates
         else:
             raise ValueError("Check the attributes used in \
                     _is_close_to_intersection")
@@ -400,7 +408,7 @@ class Turn_side(Base):
             flow *= (-1 if avg_second_track > avg_main_track else 1)
         if inter[self._direction] is not None:
             for i in range(tiles_before):
-                self._next_nodes.append({inter[self._direction]+flow*(i):{0:direction,1:direction}})
+                self._next_nodes.append({inter[self._direction][0]+flow*(i):{0:direction,1:direction}})
         ###########
 
         self.goal_id = list(self._next_nodes[-1].keys())[0]
@@ -632,7 +640,7 @@ class Take_center(Base):
                 for id in predictions_before ]
 
         # Get goal
-        straight = intersection['straight'] 
+        straight = intersection['straight'][0] 
         track = self.track[self.info['track'] == self.info[straight]['track']]
         idx_relative = straight - (self.info['track'] < self.info[straight]['track']).sum()
         idx_general = (idx_relative + tiles_before)%len(track) + (self.info['track'] < self.info[straight]['track']).sum()
