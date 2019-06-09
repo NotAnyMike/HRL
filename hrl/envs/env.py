@@ -724,7 +724,7 @@ class X(Turn,Take_center):
         self.reward_fn_X = reward_fn
 
         self.actions = {}
-        self.actions['turn']  = Turn_policy()
+        self.actions['turn'] = Turn_policy()
         self.actions['take_center'] = Take_center_policy()
 
         self.stats['left_count'] = left_count
@@ -733,6 +733,10 @@ class X(Turn,Take_center):
         self.stats['total_tracks_generated'] = total_tracks_generated
 
         self.tracks_df = self.tracks_df[self.tracks_df['x'] == True]
+
+    def _set_config(self, **kwargs):
+        super(X, self)._set_config(**kwargs)
+        self.action_space = spaces.Discrete(2)
 
     def reset(self):
         while True:
@@ -897,7 +901,7 @@ class Y(Turn):
     pass
 
 
-class Nav_without_obs(Base):#Keep_lane, X, Y):
+class Nav_without_obs_n2n(Base):#Keep_lane, X, Y):
     def __init__(self, id='NWOO', *args, **kwargs):
         def reward_fn(env):
             env._ignore_obstacles()
@@ -923,10 +927,14 @@ class Nav_without_obs(Base):#Keep_lane, X, Y):
 
         self._close_to_intersection_state = False
 
-        self.actions = {}
-        self.actions['Keep_lane']  = Keep_lane_policy()
-        self.actions['X'] = X_policy()
-        self.actions['Y'] = Y_policy()
+        #self.actions = {}
+        #self.actions['Keep_lane']  = Keep_lane_policy()
+        #self.actions['X'] = X_policy()
+        #self.actions['Y'] = Y_policy()
+
+    #def _set_config(self, **kwargs):
+        #super(Nav_without_obs, self)._set_config(**kwargs)
+        #self.action_space = spaces.Discrete(3)
 
     def reset(self):
         self._directional_state = None
@@ -960,9 +968,6 @@ class Nav_without_obs(Base):#Keep_lane, X, Y):
                     #set_trace()
                     # changing state to close
                     self._close_to_intersection_state = True
-
-                    # get direction
-                    print(direction)
 
                     # Choose positive and negative goals
                     intersection_tiles = intersection_tiles.intersection(
