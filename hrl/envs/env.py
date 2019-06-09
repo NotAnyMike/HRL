@@ -900,14 +900,15 @@ class Nav_without_obs(Base):#Keep_lane, X, Y):
                 # Changing from close to not close
                 reward = reward + 100
                 full_reward = full_reward + 100
-            if set(current_nodes).intersection(
-                    env._neg_objectives + [env._objective]):
+            if len(set(current_nodes).intersection(
+                    env._neg_objectives + [env._objective])) > 0:
                 self._close_to_intersection_state = False
                 self._directional_state = None
                 self._objective = None
                 self._neg_objectives = []
 
-                # TODO clean visited
+                # Clean visited tiles
+                env.info['visited'] = False
             return reward,full_reward,done
 
         Base.__init__(self, id=id, reward_fn=reward_fn, *args, **kwargs)
