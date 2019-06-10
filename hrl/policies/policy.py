@@ -65,7 +65,8 @@ class HighPolicy(Policy):
 
 class Turn_left(Policy):
     def __init__(self):
-        super(Turn_left, self).__init__("hrl/weights/Turn_left/v1.0.pkl",id='TL')
+        #super(Turn_left, self).__init__("hrl/weights/Turn_left/v1.0.pkl",id='TL')
+        super(Turn_left, self).__init__("hrl/weights/Turn_left/v1.1_Final_of_exp73.pkl",id='TL')
 
 
 class Turn_right(Policy):
@@ -80,7 +81,8 @@ class Take_center(Policy):
 
 class Turn(HighPolicy):
     def __init__(self):
-        super(Turn, self).__init__("hrl/weights/Turn/v1.0.pkl",id='T')
+        #super(Turn, self).__init__("hrl/weights/Turn/v1.0.pkl",id='T')
+        super(Turn, self).__init__("hrl/weights/Turn/v1.2.pkl",id='T')
 
         self.actions.append(Turn_left())
         self.actions.append(Turn_right())
@@ -117,4 +119,4 @@ class X(HighPolicy):
 
 class Keep_lane(Policy):
     def __init__(self):
-        super(Keep_lane, self).__init__("hrl/weights/Keep_lane/v0.1.pkl",id='KL')
+        super(Keep_lane, self).__init__("hrl/weights/Keep_lane/v1.0.pkl",id='KL')

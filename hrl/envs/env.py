@@ -901,8 +901,8 @@ class Y(Turn):
     pass
 
 
-class Nav_without_obs_n2n(Base):#Keep_lane, X, Y):
-    def __init__(self, id='NWOO', *args, **kwargs):
+class NWOO_n2n(Base):
+    def __init__(self, id='NWOO', allow_outside=False, *args, **kwargs):
         def reward_fn(env):
             env._ignore_obstacles()
             reward,full_reward,done = default_reward_callback(env)
@@ -923,18 +923,14 @@ class Nav_without_obs_n2n(Base):#Keep_lane, X, Y):
                 env.info['visited'] = False
             return reward,full_reward,done
 
-        Base.__init__(self, id=id, reward_fn=reward_fn, *args, **kwargs)
+        Base.__init__(
+                self, 
+                id=id, 
+                allow_outside=allow_outside, 
+                reward_fn=reward_fn, 
+                *args, **kwargs)
 
         self._close_to_intersection_state = False
-
-        #self.actions = {}
-        #self.actions['Keep_lane']  = Keep_lane_policy()
-        #self.actions['X'] = X_policy()
-        #self.actions['Y'] = Y_policy()
-
-    #def _set_config(self, **kwargs):
-        #super(Nav_without_obs, self)._set_config(**kwargs)
-        #self.action_space = spaces.Discrete(3)
 
     def reset(self):
         self._directional_state = None
@@ -943,7 +939,7 @@ class Nav_without_obs_n2n(Base):#Keep_lane, X, Y):
         self._neg_objectives = []
         return Base.reset(self)
 
-    def step(self,action):
+    def _check_and_set_objectives(self):
         # if close to an intersection, chose a direction and set a 
         # goal, all the other points will be a big negative reward
 
@@ -995,6 +991,8 @@ class Nav_without_obs_n2n(Base):#Keep_lane, X, Y):
                             else:
                                 self._neg_objectives.append(objective)
 
+    def step(self,action):
+        self._check_and_set_objectives()
         return Base.step(self,action)
 
     def _render_additional_objects(self):
@@ -1006,6 +1004,38 @@ class Nav_without_obs_n2n(Base):#Keep_lane, X, Y):
                 self._render_side_arrow('left',self._long_dir)
             elif self._directional_state == 'right':
                 self._render_side_arrow('right',self._long_dir)
+
+
+class NWOO(NWOO_n2n):
+    """
+    actions are 1: keep_lane, 2: x, 3: y
+    """
+    def __init__(self,id="NWOO",*args,**kwargs):
+        super(NWOO,self).__init__(id=id,*args,**kwargs)
+
+        self.actions = []
+        self.actions.append(Keep_lane_policy())
+        self.actions.append(X_policy())
+        self.actions.append(Y_policy())
+
+    def _set_config(self, **kwargs):
+        super(NWOO, self)._set_config(**kwargs)
+        self.action_space = spaces.Discrete(3)
+    
+    def raw_step(self,action):
+        # Normal step 
+        return super(NWOO,self).step(action)
+
+    def step(self,action):
+        if action is None:
+            state, reward, done, info = self.raw_step(None)
+        else:
+            self._check_and_set_objectives()
+
+            # execute transformed action
+            state, reward, done, info = self.actions[action](self,self.state)
+
+        return state, reward, done, info
 
 
 if __name__=='__main__':
