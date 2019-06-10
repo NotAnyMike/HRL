@@ -99,7 +99,7 @@ class Y(Policy):
         obs,rewards,done,info = self._raw_step(env,obs,0)
         env.remove_active_policy(self.id)
 
-        return obs,action_rwrd,done,info
+        return obs,rewards,done,info
 
     def _raw_step(self,env,obs,action):
         if action == 0:
