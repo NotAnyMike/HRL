@@ -213,8 +213,8 @@ class Base(CarRacing):
 
 class Turn_side(Base):
     def __init__(self, 
-            high_level=False, 
             id='T', 
+            high_level=False, 
             max_time_out=1.0, 
             max_step_reward=10, 
             allow_outside=False,
@@ -1010,8 +1010,8 @@ class NWOO(NWOO_n2n):
     """
     actions are 1: keep_lane, 2: x, 3: y
     """
-    def __init__(self,id="NWOO",*args,**kwargs):
-        super(NWOO,self).__init__(id=id,*args,**kwargs)
+    def __init__(self,id="NWOO",high_level=True,*args,**kwargs):
+        super(NWOO,self).__init__(id=id,high_level=high_level,*args,**kwargs)
 
         self.actions = []
         self.actions.append(Keep_lane_policy())
