@@ -284,6 +284,13 @@ class Turn_side(Base):
         self._reward_fn_side = reward_fn
         self.tracks_df = self.tracks_df[(self.tracks_df['t']) | (self.tracks_df['x'])]
 
+    def _choice_random_track_from_file(self):
+        if np.random.uniform() >= 0.5:
+            idx = np.random.choice(self.tracks_df[self.tracks_df['x']].index)
+        else:
+            idx = np.random.choice(self.tracks_df[self.tracks_df['t']].index)
+        return idx
+
     def update_contact_with_track(self):
         self.update_contact_with_track_side()
 
