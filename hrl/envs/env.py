@@ -710,6 +710,7 @@ class X(Turn,Take_center):
             reward_fn=None, 
             max_step_reward=10,
             id='X',
+            high_level=True,
             *args, **kwargs):
 
         def reward_fn(env):
@@ -718,7 +719,11 @@ class X(Turn,Take_center):
             else:
                 return env._reward_fn_center(env)
 
-        super(X,self).__init__(id=id,max_step_reward=max_step_reward,*args,**kwargs)
+        super(X,self).__init__(
+                id=id,
+                max_step_reward=max_step_reward,
+                high_level=high_level,
+                *args,**kwargs)
         self.is_current_type_side = is_current_type_side
         self.reward_fn = reward_fn
         self.reward_fn_X = reward_fn
@@ -816,6 +821,7 @@ class X_n2n(X):
             is_current_type_side=None, 
             reward_fn=None, 
             max_step_reward=10,
+            high_level=False,
             *args, **kwargs):
 
         def reward_fn(env):
@@ -825,7 +831,11 @@ class X_n2n(X):
                 reward,full_reward,done = env._reward_fn_center(env)
             return reward,full_reward,done
 
-        super(X,self).__init__(id=id,max_step_reward=max_step_reward,*args,**kwargs)
+        super(X,self).__init__(
+                id=id,
+                max_step_reward=max_step_reward,
+                high_level=False,
+                *args,**kwargs)
         self.is_current_type_side = is_current_type_side
         self.reward_fn = reward_fn
         self.reward_fn_X = reward_fn
@@ -1038,9 +1048,68 @@ class NWOO(NWOO_n2n):
         return state, reward, done, info
 
 
+def play_high_level(env):
+    """
+    Extension of play function in car_racing for high level policies
+
+    env:        CarRacing env
+    """
+    from pyglet.window import key
+    a = np.array([0])
+    def key_press(k, mod):
+        if k==key._1: a[0] = 0
+        if k==key._2: a[0] = 1
+        if k==key._3: a[0] = 2
+        if k==key._4: a[0] = 3
+    def key_release(k, mod):
+        a[0] = -1
+        if k==key.D:     set_trace()
+        if k==key.R:     env.reset()
+        if k==key.Z:     env.change_zoom()
+        if k==key.G:     env.switch_intersection_groups()
+        if k==key.I:     env.switch_intersection_points()
+        if k==key.X:     env.switch_xt_intersections()
+        if k==key.E:     env.switch_end_of_track()
+        if k==key.S:     env.switch_start_of_track()
+        if k==key.T:     env.screenshot('./')
+        if k==key.Q:     sys.exit()
+
+    env.render()
+    record_video = False
+    if record_video:
+        env.monitor.start('/tmp/video-test', force=True)
+    env.key_press_fn = key_press
+    env.key_release_fn = key_release
+    while True:
+        env.reset()
+        total_reward = 0.0
+        steps = 0
+        restart = False
+
+        while True:
+            a_tmp = a[0]
+            if a_tmp != -1:
+                s, r, done, info = env.step(a_tmp)
+                total_reward += r
+                if steps % 200 == 0 or done:
+                    #print("\naction " + str(["{:+0.2f}".format(x) for x in a]))
+                    print("step {} total_reward {:+0.2f}".format(steps, total_reward))
+                    steps += 1
+                    print("step {} total_reward {:+0.2f}".format(steps, total_reward))
+                steps += 1
+                if done or restart: break
+            if not record_video: # Faster, but you can as well call env.render() every time to play full window.
+                env.render()
+
+    env.close()
+
 if __name__=='__main__':
     args = get_env_args()
     env = getattr(environments, args.env)()
-    if env.high_level: env.auto_render = True
-    play(env)
+    if env.high_level: 
+        print("HIGH LEVEL")
+        env.auto_render = True
+        play_high_level(env)
+    else:
+        play(env)
 
