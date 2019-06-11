@@ -24,31 +24,31 @@ def get_train_args():
 
     parser.add_argument('--env', type=str, 
             help="The name of the class of the environment to run on")
-    parser.add_argument('--n_steps', type=int,
-            help="The number of steps to use in each training step")
-    parser.add_argument('--tag', type=str, 
-            help="A tag to identify the experiment easier")
-    parser.add_argument('--not_save', action='store_true', 
-            help="True means not saving the experiment")
-    parser.add_argument('--folder', type=str, 
-            help="The folder where the experiment will be save.Defautl \
-                    is 'experiments'")
-    parser.add_argument('--save_interval', type=int,
-            help="The model will be saved every number of steps  \
-                    specified here, default: 10000")
     parser.add_argument('--train_steps', type=int,
             help="The total number of steps to train for.  \
                     Default: 1m")
-    parser.add_argument('--n', '-n', type=int,
-            help="The number of steps from where to start counting \
-                    the next steps. Default: 0")
-    parser.add_argument('--env_num', type=int,
-            help="The number of environements to use")
-    parser.add_argument('--description','-d', type=str,
-            help="A small description of the experiment")
+    parser.add_argument('--n_steps', type=int,
+            help="The number of steps to use in each training step")
+    parser.add_argument('--save_interval', type=int,
+            help="The model will be saved every number of steps  \
+                    specified here, default: 10000")
     parser.add_argument('--weights', type=str,
             help="The position of the weights to load before \
                     continuing training")
+    parser.add_argument('--n', '-n', type=int,
+            help="The number of steps from where to start counting \
+                    the next steps. Default: 0")
+    parser.add_argument('--folder', type=str, 
+            help="The folder where the experiment will be save.Defautl \
+                    is 'experiments'")
+    parser.add_argument('--env_num', type=int,
+            help="The number of environements to use")
+    parser.add_argument('--tag', type=str, 
+            help="A tag to identify the experiment easier")
+    parser.add_argument('--description','-d', type=str,
+            help="A small description of the experiment")
+    parser.add_argument('--not_save', action='store_true', 
+            help="True means not saving the experiment")
     args = parser.parse_args()
 
     args = vars(args)
