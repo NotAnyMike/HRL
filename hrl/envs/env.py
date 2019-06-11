@@ -429,8 +429,9 @@ class Turn_side(Base):
         This is in order to allow several retries to reset 
         the environment
         """
-        filter = (self.info['x']) | ((self.info['t']) & (self.info['track'] >0))
+        filter = (self.info['x']) | ((self.info['t']) & (self.info['track'] > 0))
         # TODO why is a track > 0?
+        # Becase originally I thought having allways Left and Right was good
         if any(filter) == False:
             return False
         else:
@@ -908,7 +909,7 @@ class Keep_lane(Base):
                 break
 
         _,beta,x,y = self._get_position_inside_lane(
-                tile_id, x_pos=self.keeping_left ,discrete=True)
+                tile_id,x_pos=self.keeping_left,discrete=True)
         self.place_agent([beta,x,y])
 
         return True
@@ -1053,6 +1054,35 @@ class NWOO(NWOO_n2n):
             state, reward, done, info = self.actions[action](self,self.state)
 
         return state, reward, done, info
+
+
+class Change_lane(Base):
+    def __init__(self,id='CL', allow_outside=False, *args,**kwargs):
+        super(Change_lane,self).__init__(id=id,allow_outside=allow_outside,*args,**kwargs)
+
+    def _choose_side(self):
+        return np.random.choice(['left','right'])
+
+    def reset(self):
+        while True:
+            obs = super(Change_lane,self).reset()
+            if obs is not False:
+                if self._weak_reset_change_lane():
+                    break
+        return self.step(None)[0]
+
+    def _weak_reset_change_lane(self):
+        while True:
+            tile_id = np.random.choice(list(range(len(self.track))))
+            if not self._is_close_to_intersection(tile_id,8):
+                break
+
+        x_pos = 1 if self._choose_side() == 'left' else 0
+        _,beta,x,y = self._get_position_inside_lane(
+                tile_id,x_pos=x_pos,discrete=True)
+        self.place_agent([beta,x,y])
+
+        return True
 
 
 def play_high_level(env):
