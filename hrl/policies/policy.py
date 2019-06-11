@@ -55,8 +55,8 @@ class Policy:
 
 
 class HighPolicy(Policy):
-    def __init__(self,weights,id):
-        super(HighPolicy,self).__init__(weights,id=id)
+    def __init__(self,weights,id,max_steps=10):
+        super(HighPolicy,self).__init__(weights,id=id,max_steps=max_steps)
         self.actions = []
 
     def _raw_step(self,env,obs,action):
@@ -82,7 +82,10 @@ class Take_center(Policy):
 class Turn(HighPolicy):
     def __init__(self):
         #super(Turn, self).__init__("hrl/weights/Turn/v1.0.pkl",id='T')
-        super(Turn, self).__init__("hrl/weights/Turn/v1.2.pkl",id='T')
+        super(Turn, self).__init__(
+                "hrl/weights/Turn/v1.2.pkl",
+                id='T',
+                max_steps=0)
 
         self.actions.append(Turn_left())
         self.actions.append(Turn_right())
@@ -111,7 +114,10 @@ class Y(Policy):
 
 class X(HighPolicy):
     def __init__(self):
-        super(X,self).__init__("hrl/weights/X/v1.0.pkl",id='X')
+        super(X,self).__init__(
+                "hrl/weights/X/v1.0.pkl",
+                id='X',
+                max_steps=0)
 
         self.actions.append(Turn())
         self.actions.append(Take_center())
