@@ -880,6 +880,11 @@ class Keep_lane(Base):
             # calculate normal reward
             reward,full_reward,done = default_reward_callback(env)
 
+            # For child classes
+            reward,full_reward,done = \
+                    self._check_early_termination_change_lane(
+                            reward,full_reward,done)
+
             done = done if not _done else _done
 
             if reward > 0:
@@ -890,9 +895,14 @@ class Keep_lane(Base):
         super(Keep_lane, self).__init__(*args, **kwargs, id=id, allow_outside=allow_outside)
         self.reward_fn = reward_fn
 
-    def reset(self):
+    def _check_early_termination_change_lane(self,reward,full_reward,done):
+        return reward,full_reward,done
+
+    def _set_side(self):
         self.keeping_left = True if np.random.uniform() >= 0.5 else False
 
+    def reset(self):
+        self._set_side()
         while True:
             obs = super(Keep_lane,self).reset()
             if obs is not False:
@@ -1056,33 +1066,46 @@ class NWOO(NWOO_n2n):
         return state, reward, done, info
 
 
-class Change_lane(Base):
-    def __init__(self,id='CL', allow_outside=False, *args,**kwargs):
-        super(Change_lane,self).__init__(id=id,allow_outside=allow_outside,*args,**kwargs)
+class Change_lane_n2n(Keep_lane):
+    def __init__(self, id='CL', *args,**kwargs):
+        super(Change_lane_n2n,self).__init__(id=id,*args,**kwargs)
 
-    def _choose_side(self):
-        return np.random.choice(['left','right'])
+    def _get_position_inside_lane(self,idx,x_pos,border=True,direction=1,discrete=False):
+        x_pos = 1 - x_pos
+        return super(Change_lane_n2n,self)._get_position_inside_lane(
+                idx,
+                x_pos,
+                border=border,
+                direction=direction,
+                discrete=discrete)
+
+    def _check_early_termination_change_lane(self,reward,full_reward,done):
+        if self.full_reward >= 10:
+            done = True
+        return reward,full_reward,done
 
     def reset(self):
-        while True:
-            obs = super(Change_lane,self).reset()
-            if obs is not False:
-                if self._weak_reset_change_lane():
-                    break
-        return self.step(None)[0]
+        obs = super(Change_lane_n2n,self).reset()
+        speed = np.random.uniform(0,70)
+        self.set_speed(speed)
 
-    def _weak_reset_change_lane(self):
-        while True:
-            tile_id = np.random.choice(list(range(len(self.track))))
-            if not self._is_close_to_intersection(tile_id,8):
-                break
+        for _ in range(self.frames_per_state+20):
+            obs = self.step(None)[0]
+        return obs
 
-        x_pos = 1 if self._choose_side() == 'left' else 0
-        _,beta,x,y = self._get_position_inside_lane(
-                tile_id,x_pos=x_pos,discrete=True)
-        self.place_agent([beta,x,y])
+class Change_to_left(Change_lane_n2n):
+    def __init__(self, id='CLeft', *args,**kwargs):
+        super(Change_lane_n2n,self).__init__(id=id,*args,**kwargs)
 
-        return True
+    def _set_side(self):
+        self.keeping_left = True
+
+class Change_to_right(Change_lane_n2n):
+    def __init__(self, id='CRight', *args,**kwargs):
+        super(Change_lane_n2n,self).__init__(id=id,*args,**kwargs)
+
+    def _set_side(self):
+        self.keeping_left = False
 
 
 def play_high_level(env):
