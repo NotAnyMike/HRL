@@ -1,11 +1,12 @@
+from copy import copy, deepcopy
 import multiprocessing as mp
 
-import numpy as np
 from gym.envs.box2d import CarRacing
 from gym.envs.box2d.car_racing import play, default_reward_callback, TILE_NAME, SOFT_NEG_REWARD, HARD_NEG_REWARD, WINDOW_W, WINDOW_H, TRACK_WIDTH
 from gym import spaces
 from pdb import set_trace
 from pyglet import gl
+import numpy as np
 
 from hrl.common.arg_extractor import get_env_args
 from hrl.envs import env as environments
@@ -429,7 +430,7 @@ class Turn_side(Base):
         This is in order to allow several retries to reset 
         the environment
         """
-        filter = (self.info['x']) | ((self.info['t']) & (self.info['track'] > 0))
+        filter = (self.info['x']) | ((self.info['t']))# & (self.info['track'] > 0))
         # TODO why is a track > 0?
         # Becase originally I thought having allways Left and Right was good
         if any(filter) == False:
@@ -940,15 +941,7 @@ class NWOO_n2n(Base):
                 # Changing from close to not close
                 reward = reward + 100
                 full_reward = full_reward + 100
-            if len(set(current_nodes).intersection(
-                    env._neg_objectives + [env._objective])) > 0:
-                self._close_to_intersection_state = False
-                self._directional_state = None
-                self._objective = None
-                self._neg_objectives = []
-
-                # Clean visited tiles
-                env.info['visited'] = False
+            reward,full_reward,done = env._check_if_in_objective(reward,full_reward,done)
             return reward,full_reward,done
 
         Base.__init__(
@@ -959,6 +952,20 @@ class NWOO_n2n(Base):
                 *args, **kwargs)
 
         self._close_to_intersection_state = False
+        self._reward_fn_NWOO_n2n = reward_fn
+
+    def _check_if_in_objective(self,reward,full_reward,done):
+        current_nodes = list(self._current_nodes.keys())
+        if len(set(current_nodes).intersection(
+                self._neg_objectives + [self._objective])) > 0:
+            self._close_to_intersection_state = False
+            self._directional_state = None
+            self._objective = None
+            self._neg_objectives = []
+
+            # Clean visited tiles
+            self.info['visited'] = False
+        return reward,full_reward,done
 
     def reset(self):
         self._directional_state = None
@@ -989,7 +996,6 @@ class NWOO_n2n(Base):
 
             if len(intersection_tiles) > 0:
                 if not self._close_to_intersection_state:
-                    #set_trace()
                     # changing state to close
                     self._close_to_intersection_state = True
 
@@ -1000,7 +1006,7 @@ class NWOO_n2n(Base):
                     intersection_dict = self.understand_intersection(
                             intersection_tile,direction)
 
-                    options = [key for key,val in intersection_dict.items() if val is not None]
+                    options = self._get_options_for_directional(intersection_dict)
 
                     self._directional_state = np.random.choice(options)
 
@@ -1019,6 +1025,9 @@ class NWOO_n2n(Base):
                             else:
                                 self._neg_objectives.append(objective)
 
+    def _get_options_for_directional(self,intersection):
+        return [key for key,val in intersection.items() if val is not None]
+
     def step(self,action):
         self._check_and_set_objectives()
         return Base.step(self,action)
@@ -1032,6 +1041,45 @@ class NWOO_n2n(Base):
                 self._render_side_arrow('left',self._long_dir)
             elif self._directional_state == 'right':
                 self._render_side_arrow('right',self._long_dir)
+
+
+class Turn_v2(NWOO_n2n):
+    def _get_options_for_directional(self,intersection):
+        if not None in intersection.values():
+            intersection = deepcopy(intersection)
+            intersection['straight'] = None
+        options = super(Turn_v2,self)._get_options_for_directional(intersection)
+        return options
+
+    def _choice_random_track_from_file(self):
+        if True or np.random.uniform() >= 0.5:
+            idx = np.random.choice(self.tracks_df[self.tracks_df['x']].index)
+        else:
+            idx = np.random.choice(self.tracks_df[self.tracks_df['t']].index)
+        return idx
+
+    def _check_if_in_objective(self,reward,full_reward,done):
+        current_nodes = list(self._current_nodes.keys())
+        done_ = False
+        if len(set(current_nodes).intersection(
+                self._neg_objectives + [self._objective])) > 0:
+            done_ = True
+        super(Turn_v2,self)._check_if_in_objective(reward,full_reward,done)
+
+        done = True if done_ else done
+        return reward,full_reward,done
+
+    def reset(self):
+        obs = super(Turn_v2,self).reset()
+
+        pos = self.get_position_near_junction('xt',8)
+
+        self.place_agent(pos)
+
+        for _ in range(self.frames_per_state):
+            self.screenshot(name=str(_))
+            obs = self.step(None)[0]
+        return obs
 
 
 class NWOO(NWOO_n2n):
@@ -1089,9 +1137,10 @@ class Change_lane_n2n(Keep_lane):
         speed = np.random.uniform(0,70)
         self.set_speed(speed)
 
-        for _ in range(self.frames_per_state+20):
+        for _ in range(self.frames_per_state):
             obs = self.step(None)[0]
         return obs
+
 
 class Change_to_left(Change_lane_n2n):
     def __init__(self, id='CLeft', *args,**kwargs):
@@ -1099,6 +1148,7 @@ class Change_to_left(Change_lane_n2n):
 
     def _set_side(self):
         self.keeping_left = True
+
 
 class Change_to_right(Change_lane_n2n):
     def __init__(self, id='CRight', *args,**kwargs):

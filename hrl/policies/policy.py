@@ -64,37 +64,77 @@ class HighPolicy(Policy):
 
 
 class Turn_left(Policy):
-    def __init__(self):
+    def __init__(self,v=None):
         #super(Turn_left, self).__init__("hrl/weights/Turn_left/v1.0.pkl",id='TL')
-        super(Turn_left, self).__init__("hrl/weights/Turn_left/v1.1_Final_of_exp73.pkl",id='TL')
+        if v == 1.0:
+            """
+            This version is used by Turn 1.2
+            """
+            w = "hrl/weights/Turn_left/v1.1_Final_of_exp73.pkl"
+        else:
+            w = "hrl/weights/Turn_left/v1.1_Final_of_exp73.pkl"
+
+        super(Turn_left, self).__init__(w,id='TL')
 
 
 class Turn_right(Policy):
-    def __init__(self):
-        super(Turn_right, self).__init__("hrl/weights/Turn_right/v1.0.pkl",id='TR')
+    def __init__(self,v=None):
+        if v==1.0:
+            """
+            This version is used by Turn 1.2
+            """
+            w = "hrl/weights/Turn_right/v1.0.pkl"
+        else:
+            w = "hrl/weights/Turn_right/v1.0.pkl"
+
+        super(Turn_right, self).__init__(w,id='TR')
 
 
 class Take_center(Policy):
-    def __init__(self):
-        super(Take_center, self).__init__("hrl/weights/Take_center/v1.0.pkl",id='TC')
+    def __init__(self,v=None):
+        if v == 1.0:
+            """
+            faulty version with the same problem of Turn
+            """
+            w = "hrl/weights/Take_center/v1.0.pkl"
+        else:
+            w = "hrl/weights/Take_center/v1.0.pkl"
+
+        super(Take_center, self).__init__(w,id='TC')
 
 
 class Turn(HighPolicy):
-    def __init__(self):
+    def __init__(self,v=None):
         #super(Turn, self).__init__("hrl/weights/Turn/v1.0.pkl",id='T')
+        if v==1.2:
+            """
+            this version is the one which Turn was not trained with X intersections,
+            and then retrained with X intersections but X still behaves poorly
+            """
+            weights = "hrl/weights/Turn/v1.2.pkl"
+            self.actions.append(Turn_left(v=1.0))
+            self.actions.append(Turn_right(v=1.0))
+        else:
+            weights = "hrl/weights/Turn/v1.2.pkl"
+            self.actions.append(Turn_left())
+            self.actions.append(Turn_right())
+
         super(Turn, self).__init__(
-                "hrl/weights/Turn/v1.2.pkl",
+                weights,
                 id='T',
                 max_steps=0)
 
-        self.actions.append(Turn_left())
-        self.actions.append(Turn_right())
-
 
 class Y(Policy):
-    def __init__(self):
+    def __init__(self,v=None):
         self.id = 'Y'
-        self.turn = Turn()
+        if v==1.0:
+            """
+            this version is a poorly one in an open environment
+            """
+            self.turn = Turn(v=1.2)
+        else:
+            self.turn = Turn()
 
     def __call__(self,env,state):
         obs = state
@@ -113,18 +153,28 @@ class Y(Policy):
 
 
 class X(HighPolicy):
-    def __init__(self):
+    def __init__(self,v=None):
+        if v == 1.0:
+            """
+            Bad policy that does not handdle good because the 
+            error with Turn in x intersections in an open world
+            """
+            w = "hrl/weights/X/v1.0.pkl"
+            self.actions.append(Turn(v=1.0))
+            self.actions.append(Take_center(v=1.0))
+        else:
+            w = "hrl/weights/X/v1.0.pkl"
+            self.actions.append(Turn())
+            self.actions.append(Take_center())
+
         super(X,self).__init__(
-                "hrl/weights/X/v1.0.pkl",
+                w,
                 id='X',
                 max_steps=0)
 
-        self.actions.append(Turn())
-        self.actions.append(Take_center())
-
 
 class Keep_lane(Policy):
-    def __init__(self,max_steps=10):
+    def __init__(self,v=None,max_steps=10):
         super(Keep_lane, self).__init__(
                 "hrl/weights/Keep_lane/v1.0.pkl",
                 id='KL',
