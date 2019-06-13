@@ -1,5 +1,6 @@
 from copy import copy, deepcopy
 import multiprocessing as mp
+import sys
 
 from gym.envs.box2d import CarRacing
 from gym.envs.box2d.car_racing import play, default_reward_callback, TILE_NAME, SOFT_NEG_REWARD, HARD_NEG_REWARD, WINDOW_W, WINDOW_H, TRACK_WIDTH
@@ -17,6 +18,8 @@ from hrl.policies.policy import Take_center as Take_center_policy
 from hrl.policies.policy import Keep_lane as Keep_lane_policy
 from hrl.policies.policy import Y as Y_policy
 from hrl.policies.policy import X as X_policy
+from hrl.policies.policy import Change_to_left as Change_to_left_policy
+from hrl.policies.policy import Change_to_right as Change_to_right_policy
 from hrl.common.visualiser import PickleWrapper, Plotter, worker
 
 class Base(CarRacing):
@@ -210,6 +213,25 @@ class Base(CarRacing):
         gl.glVertex3f(WINDOW_W*d+long_dir*150,WINDOW_H-80-15,0)
         gl.glVertex3f(WINDOW_W*d+long_dir*100,WINDOW_H-80-15,0)
         gl.glEnd()
+
+
+class High_level_env_extension():
+    def __init__(self,high_level=True,*args,**kwargs):
+        super(High_level_env_extension,self).__init__(
+                high_level=high_level,*args,**kwargs)
+
+    def raw_step(self,action):
+        # Normal step 
+        return super(High_level_env_extension,self).step(action)
+
+    def step(self,action):
+        if action is None:
+            state, reward, done, info = self.raw_step(None)
+        else:
+            # execute transformed action
+            state, reward, done, info = self.actions[action](self,self.state)
+
+        return state, reward, done, info
 
 
 class Turn_side(Base):
@@ -1046,7 +1068,7 @@ class NWOO_n2n(Base):
                 self._render_side_arrow('right',self._long_dir)
 
 
-class NWOO(NWOO_n2n):
+class NWOO(NWOO_n2n,High_level_env_extension):
     """
     actions are 1: keep_lane, 2: x, 3: y
     """
@@ -1062,18 +1084,11 @@ class NWOO(NWOO_n2n):
         super(NWOO, self)._set_config(**kwargs)
         self.action_space = spaces.Discrete(3)
     
-    def raw_step(self,action):
-        # Normal step 
-        return super(NWOO,self).step(action)
-
     def step(self,action):
-        if action is None:
-            state, reward, done, info = self.raw_step(None)
-        else:
+        if action is not None:
             self._check_and_set_objectives()
 
-            # execute transformed action
-            state, reward, done, info = self.actions[action](self,self.state)
+        state, reward, done, info = super(NWOO,self).step(action) 
 
         return state, reward, done, info
 
@@ -1155,7 +1170,7 @@ class Turn_left_v2(Turn_side_v2):
 
 
 class Change_lane_n2n(Keep_lane):
-    def __init__(self, id='CL', *args,**kwargs):
+    def __init__(self, id='CLane', *args,**kwargs):
         super(Change_lane_n2n,self).__init__(id=id,*args,**kwargs)
 
     def _get_position_inside_lane(self,idx,x_pos,border=True,direction=1,discrete=False):
@@ -1180,6 +1195,29 @@ class Change_lane_n2n(Keep_lane):
         for _ in range(self.frames_per_state):
             obs = self.step(None)[0]
         return obs
+
+
+class Change_lane(High_level_env_extension,Change_lane_n2n):
+    def __init__(self,*args,**kwargs):
+        super(Change_lane,self).__init__(*args,**kwargs)
+
+        self.actions = []
+        self.actions.append(Change_to_left_policy())
+        self.actions.append(Change_to_right_policy())
+
+    def _check_early_termination_change_lane(self,reward,full_reward,done):
+        if self._steps_taken > 2:
+            done = True
+
+        return reward,full_reward,done
+
+    def reset(self):
+        self._steps_taken = 0
+        super(Change_lane,self).reset()
+
+    def step(self,action):
+        if action is not None: self._steps_taken += 1
+        return super(Change_lane,self).step(action)
 
 
 class Change_to_left(Change_lane_n2n):
