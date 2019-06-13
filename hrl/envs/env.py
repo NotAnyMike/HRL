@@ -1213,7 +1213,7 @@ class Change_lane(High_level_env_extension,Change_lane_n2n):
 
     def reset(self):
         self._steps_taken = 0
-        super(Change_lane,self).reset()
+        return super(Change_lane,self).reset()
 
     def step(self,action):
         if action is not None: self._steps_taken += 1
