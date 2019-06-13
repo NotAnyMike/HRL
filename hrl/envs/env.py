@@ -220,6 +220,8 @@ class High_level_env_extension():
         super(High_level_env_extension,self).__init__(
                 high_level=high_level,*args,**kwargs)
 
+        self.action_space = spaces.Discrete(len(self.actions))
+
     def raw_step(self,action):
         # Normal step 
         return super(High_level_env_extension,self).step(action)
@@ -1073,17 +1075,13 @@ class NWOO(NWOO_n2n,High_level_env_extension):
     actions are 1: keep_lane, 2: x, 3: y
     """
     def __init__(self,id="NWOO",high_level=True,*args,**kwargs):
-        super(NWOO,self).__init__(id=id,high_level=high_level,*args,**kwargs)
-
         self.actions = []
         self.actions.append(Keep_lane_policy())
         self.actions.append(X_policy())
         self.actions.append(Y_policy())
 
-    def _set_config(self, **kwargs):
-        super(NWOO, self)._set_config(**kwargs)
-        self.action_space = spaces.Discrete(3)
-    
+        super(NWOO,self).__init__(id=id,high_level=high_level,*args,**kwargs)
+
     def step(self,action):
         if action is not None:
             self._check_and_set_objectives()
@@ -1199,11 +1197,12 @@ class Change_lane_n2n(Keep_lane):
 
 class Change_lane(High_level_env_extension,Change_lane_n2n):
     def __init__(self,*args,**kwargs):
-        super(Change_lane,self).__init__(*args,**kwargs)
-
         self.actions = []
         self.actions.append(Change_to_left_policy())
         self.actions.append(Change_to_right_policy())
+
+        super(Change_lane,self).__init__(*args,**kwargs)
+
 
     def _check_early_termination_change_lane(self,reward,full_reward,done):
         if self._steps_taken > 2:
