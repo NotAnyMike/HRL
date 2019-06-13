@@ -179,3 +179,19 @@ class Keep_lane(Policy):
                 "hrl/weights/Keep_lane/v1.0.pkl",
                 id='KL',
                 max_steps=max_steps,)
+
+
+class Change_to_right(Policy):
+    def __init__(self,v=None,max_steps=50):
+        super(Change_to_right, self).__init__(
+                "hrl/weights/CRight/v1.0_exp83_weights_final.pkl",
+                id='CR',
+                max_steps=max_steps,)
+
+
+class Change_to_left(Policy):
+    def __init__(self,v=None,max_steps=50):
+        super(Change_to_left, self).__init__(
+                "hrl/weights/CLeft/v1.0_exp82_weights_final.pkl",
+                id='CL',
+                max_steps=max_steps,)
