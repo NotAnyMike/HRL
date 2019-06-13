@@ -968,11 +968,14 @@ class NWOO_n2n(Base):
         return reward,full_reward,done
 
     def reset(self):
+        self._clean_NWOO_n2n_vars()
+        return super(NWOO_n2n,self).reset()
+
+    def _clean_NWOO_n2n_vars(self):
         self._directional_state = None
         self._close_to_intersection_state = False
         self._objective = None
         self._neg_objectives = []
-        return Base.reset(self)
 
     def _check_and_set_objectives(self):
         # if close to an intersection, chose a direction and set a 
@@ -1043,45 +1046,6 @@ class NWOO_n2n(Base):
                 self._render_side_arrow('right',self._long_dir)
 
 
-class Turn_v2(NWOO_n2n):
-    def _get_options_for_directional(self,intersection):
-        if not None in intersection.values():
-            intersection = deepcopy(intersection)
-            intersection['straight'] = None
-        options = super(Turn_v2,self)._get_options_for_directional(intersection)
-        return options
-
-    def _choice_random_track_from_file(self):
-        if True or np.random.uniform() >= 0.5:
-            idx = np.random.choice(self.tracks_df[self.tracks_df['x']].index)
-        else:
-            idx = np.random.choice(self.tracks_df[self.tracks_df['t']].index)
-        return idx
-
-    def _check_if_in_objective(self,reward,full_reward,done):
-        current_nodes = list(self._current_nodes.keys())
-        done_ = False
-        if len(set(current_nodes).intersection(
-                self._neg_objectives + [self._objective])) > 0:
-            done_ = True
-        super(Turn_v2,self)._check_if_in_objective(reward,full_reward,done)
-
-        done = True if done_ else done
-        return reward,full_reward,done
-
-    def reset(self):
-        obs = super(Turn_v2,self).reset()
-
-        pos = self.get_position_near_junction('xt',8)
-
-        self.place_agent(pos)
-
-        for _ in range(self.frames_per_state):
-            self.screenshot(name=str(_))
-            obs = self.step(None)[0]
-        return obs
-
-
 class NWOO(NWOO_n2n):
     """
     actions are 1: keep_lane, 2: x, 3: y
@@ -1112,6 +1076,82 @@ class NWOO(NWOO_n2n):
             state, reward, done, info = self.actions[action](self,self.state)
 
         return state, reward, done, info
+
+
+class Turn_v2_n2n(NWOO_n2n):
+    def _get_options_for_directional(self,intersection):
+        if not None in intersection.values():
+            intersection = deepcopy(intersection)
+            intersection['straight'] = None
+        options = super(Turn_v2_n2n,self)._get_options_for_directional(intersection)
+        return options
+
+    def _choice_random_track_from_file(self):
+        # x has priority when there are x in track
+        # so to balance things out, here t has some bias
+        if np.random.uniform() >= 0.7: 
+            idx = np.random.choice(self.tracks_df[self.tracks_df['x']].index)
+        else:
+            idx = np.random.choice(self.tracks_df[self.tracks_df['t']].index)
+        return idx
+
+    def _check_if_in_objective(self,reward,full_reward,done):
+        current_nodes = list(self._current_nodes.keys())
+        done_ = False
+        if len(set(current_nodes).intersection(
+                self._neg_objectives + [self._objective])) > 0:
+            done_ = True
+        super(Turn_v2_n2n,self)._check_if_in_objective(reward,full_reward,done)
+
+        done = True if done_ else done
+        return reward,full_reward,done
+
+    def reset(self):
+        obs = super(Turn_v2_n2n,self).reset()
+
+        beta,x,y = self.get_position_near_junction('xt',8)
+        angle_noise = np.random.uniform(-1,1)*np.pi/12
+        beta += angle_noise
+
+        self.place_agent([beta,x,y])
+
+        speed = 0
+        if np.random.uniform() > 0.2:
+            speed = np.random.uniform(0,100)
+        self.set_speed(speed)
+
+        for _ in range(self.frames_per_state):
+            obs = self.step(None)[0]
+
+        self._clean_NWOO_n2n_vars()
+        return obs
+
+
+class Turn_side_v2(Turn_v2_n2n):
+    """
+    side_to_turn is whether 'left' or 'right'
+    """
+    def __init__(self,side_to_turn,*args,**kwargs):
+        super(Turn_side_v2,self).__init__(*args,**kwargs)
+        self._side_to_turn = side_to_turn
+
+    def _get_options_for_directional(self,intersection):
+        options = super(Turn_side_v2,self)._get_options_for_directional(intersection)
+        if self._side_to_turn in options:
+            options = [self._side_to_turn]
+        else:
+            options = ['straight']
+        return options
+
+
+class Turn_right_v2(Turn_side_v2):
+    def __init__(self,*args,**kwargs):
+        super(Turn_right_v2,self).__init__(side_to_turn='right',*args,**kwargs)
+
+
+class Turn_left_v2(Turn_side_v2):
+    def __init__(self,*args,**kwargs):
+        super(Turn_left_v2,self).__init__(side_to_turn='left',*args,**kwargs)
 
 
 class Change_lane_n2n(Keep_lane):
