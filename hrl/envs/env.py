@@ -1112,6 +1112,9 @@ class NWO_n2n(NWOO_n2n):
                 done = True
         return reward,full_reward,done
 
+    def check_obstacles_touched(self,obstacle_value=-100):
+        return super(NWO_n2n,self).check_obstacles_touched(obstacle_value=obstacle_value)
+
 
 class NWO(High_level_env_extension,NWO_n2n):
     def __init__(self,id='NWO',*args,**kwargs):
