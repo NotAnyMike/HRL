@@ -1218,7 +1218,7 @@ class Change_lane_n2n(Keep_lane):
 
     def reset(self):
         obs = super(Change_lane_n2n,self).reset()
-        speed = np.random.uniform(0,70)
+        speed = np.random.uniform(0,150)
         self.set_speed(speed)
 
         for _ in range(self.frames_per_state):
