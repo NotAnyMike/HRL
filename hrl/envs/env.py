@@ -20,6 +20,7 @@ from hrl.policies.policy import Y as Y_policy
 from hrl.policies.policy import X as X_policy
 from hrl.policies.policy import Change_to_left as Change_to_left_policy
 from hrl.policies.policy import Change_to_right as Change_to_right_policy
+from hrl.policies.policy import Change_lane as Change_lane_policy
 from hrl.common.visualiser import PickleWrapper, Plotter, worker
 
 class Base(CarRacing):
@@ -955,9 +956,10 @@ class Y(Turn):
 
 
 class NWOO_n2n(Base):
-    def __init__(self, id='NWOO', allow_outside=False, *args, **kwargs):
+    def __init__(self, id='NWOO', ignore_obstacles=True, allow_outside=False, *args, **kwargs):
         def reward_fn(env):
-            env._ignore_obstacles()
+            if env._ignore_obstacles is False:
+                env._ignore_obstacles()
             reward,full_reward,done = default_reward_callback(env)
 
             current_nodes = list(env._current_nodes.keys())
@@ -965,6 +967,8 @@ class NWOO_n2n(Base):
                 # Changing from close to not close
                 reward = reward + 100
                 full_reward = full_reward + 100
+
+            reward,full_reward,done = env._check_early_termination_NWO(reward,full_reward,done)
             reward,full_reward,done = env._check_if_in_objective(reward,full_reward,done)
             return reward,full_reward,done
 
@@ -975,8 +979,13 @@ class NWOO_n2n(Base):
                 reward_fn=reward_fn, 
                 *args, **kwargs)
 
+        self._ignore_obstacles = ignore_obstacles
         self._close_to_intersection_state = False
         self._reward_fn_NWOO_n2n = reward_fn
+
+    def _check_early_termination_NWO(self,reward,full_reward,done):
+        # for NWO
+        return reward,full_reward,done
 
     def _check_if_in_objective(self,reward,full_reward,done):
         current_nodes = list(self._current_nodes.keys())
@@ -1070,7 +1079,7 @@ class NWOO_n2n(Base):
                 self._render_side_arrow('right',self._long_dir)
 
 
-class NWOO(NWOO_n2n,High_level_env_extension):
+class NWOO(High_level_env_extension,NWOO_n2n):
     """
     actions are 1: keep_lane, 2: x, 3: y
     """
@@ -1089,6 +1098,28 @@ class NWOO(NWOO_n2n,High_level_env_extension):
         state, reward, done, info = super(NWOO,self).step(action) 
 
         return state, reward, done, info
+
+
+class NWO_n2n(NWOO_n2n):
+    def __init__(self,ignore_obstacles=True,*args,**kwargs):
+        super(NWO_n2n,self).__init__(ignore_obstacles=ignore_obstacles,*args,**kwargs)
+
+    def _check_early_termination_NWO(self,reward,full_reward,done):
+        # if close to an interseciton return done=True
+        if len(list(self._current_nodes.keys())) > 0 and self._long_dir is not None:
+            current_node = list(self._current_nodes.keys())[0]
+            if self._is_close_to_intersection(current_node,10,self._long_dir):
+                done = True
+        return reward,full_reward,done
+
+
+class NWO(High_level_env_extension,NWO_n2n):
+    def __init__(self,id='NWO',*args,**kwargs):
+        self.actions = []
+        self.actions.append(Keep_lane_policy())
+        self.actions.append(Change_lane_policy())
+
+        super(NWO,self).__init__(id=id,*args,**kwargs)
 
 
 class Turn_v2_n2n(NWOO_n2n):

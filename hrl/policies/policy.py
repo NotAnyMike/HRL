@@ -57,7 +57,6 @@ class Policy:
 class HighPolicy(Policy):
     def __init__(self,weights,id,max_steps=10):
         super(HighPolicy,self).__init__(weights,id=id,max_steps=max_steps)
-        self.actions = []
 
     def _raw_step(self,env,obs,action):
         return self.actions[action](env,obs)
@@ -106,6 +105,7 @@ class Take_center(Policy):
 class Turn(HighPolicy):
     def __init__(self,v=None):
         #super(Turn, self).__init__("hrl/weights/Turn/v1.0.pkl",id='T')
+        self.actions = []
         if v==1.2:
             """
             this version is the one which Turn was not trained with X intersections,
@@ -154,6 +154,7 @@ class Y(Policy):
 
 class X(HighPolicy):
     def __init__(self,v=None):
+        self.actions = []
         if v == 1.0:
             """
             Bad policy that does not handdle good because the 
@@ -195,3 +196,13 @@ class Change_to_left(Policy):
                 "hrl/weights/CLeft/v1.0_exp82_weights_final.pkl",
                 id='CL',
                 max_steps=max_steps,)
+
+
+class Change_lane(HighPolicy):
+    def __init__(self,id='CLane', v=None):
+        w = "hrl/weights/Change_lane/v1.0_exp86_weights_final.pkl"
+        self.actions = []
+        self.actions.append(Change_to_right())
+        self.actions.append(Change_to_left())
+
+        super(Change_lane,self).__init__(w,id=id,max_steps=0)
