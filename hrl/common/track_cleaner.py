@@ -32,7 +32,7 @@ def clean_tracks(folder='/tracks/'):
 
     print("tracks to delete are:", idx_to_remove)
 
-    track_list.drop(list(idx_to_remove))
+    track_list = track_list.drop(list(idx_to_remove))
     track_list.to_csv(folder + '/list.csv')
 
     for idx in idx_to_remove:
