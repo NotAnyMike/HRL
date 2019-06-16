@@ -70,8 +70,13 @@ class Turn_left(Policy):
             This version is used by Turn 1.2
             """
             w = "hrl/weights/Turn_left/v1.1_Final_of_exp73.pkl"
+        elif v==1.2:
+            """
+            This version is re trained with x and also solves straight
+            """
+            w = "hrl/weights/Turn_left/v1.2_exp84_weights_final.pkl"
         else:
-            w = "hrl/weights/Turn_left/v1.1_Final_of_exp73.pkl"
+            w = "hrl/weights/Turn_left/v1.2_exp84_weights_final.pkl"
 
         super(Turn_left, self).__init__(w,id='TL')
 
@@ -83,8 +88,13 @@ class Turn_right(Policy):
             This version is used by Turn 1.2
             """
             w = "hrl/weights/Turn_right/v1.0.pkl"
+        elif v==1.2:
+            """
+            this version used x as well as straight directionals
+            """
+            w = "hrl/weights/Turn_right/v1.2_exp85_weights_final.pkl"
         else:
-            w = "hrl/weights/Turn_right/v1.0.pkl"
+            w = "hrl/weights/Turn_right/v1.2_exp85_weights_final.pkl"
 
         super(Turn_right, self).__init__(w,id='TR')
 
