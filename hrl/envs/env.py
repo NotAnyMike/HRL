@@ -979,6 +979,7 @@ class NWOO_n2n(Base):
                 reward_fn=reward_fn, 
                 *args, **kwargs)
 
+        self._spaces_to_check = 8
         self._ignore_obstacles = ignore_obstacles
         self._close_to_intersection_state = False
         self._reward_fn_NWOO_n2n = reward_fn
@@ -1028,7 +1029,7 @@ class NWOO_n2n(Base):
         if self._long_dir is not None:
             current_tile = list(self._current_nodes.keys())[0]
             intersection_tiles = self.get_close_intersections(
-                    current_tile,spaces=8,direction=direction)
+                    current_tile,spaces=self._spaces_to_check,direction=direction)
 
             if len(intersection_tiles) > 0:
                 if not self._close_to_intersection_state:
@@ -1066,7 +1067,7 @@ class NWOO_n2n(Base):
 
     def step(self,action):
         self._check_and_set_objectives()
-        return Base.step(self,action)
+        return super(NWOO_n2n,self).step(action)
 
     def _render_additional_objects(self):
         if self._close_to_intersection_state == True:
@@ -1126,6 +1127,11 @@ class NWO(High_level_env_extension,NWO_n2n):
 
 
 class Turn_v2_n2n(NWOO_n2n):
+    def __init__(self,id='T',*args,**kwargs):
+        super(Turn_v2_n2n,self).__init__(id=id,*args,**kwargs)
+
+        self._spaces_to_check = 14
+
     def _get_options_for_directional(self,intersection):
         if not None in intersection.values():
             intersection = deepcopy(intersection)
@@ -1153,10 +1159,8 @@ class Turn_v2_n2n(NWOO_n2n):
         done = True if done_ else done
         return reward,full_reward,done
 
-    def reset(self):
-        obs = super(Turn_v2_n2n,self).reset()
-
-        beta,x,y = self.get_position_near_junction('xt',8)
+    def _position_car_on_reset(self):
+        beta,x,y = self.get_position_near_junction('xt',13)
         angle_noise = np.random.uniform(-1,1)*np.pi/12
         beta += angle_noise
 
@@ -1167,11 +1171,21 @@ class Turn_v2_n2n(NWOO_n2n):
             speed = np.random.uniform(0,100)
         self.set_speed(speed)
 
-        for _ in range(self.frames_per_state):
-            obs = self.step(None)[0]
-
+    def reset(self):
         self._clean_NWOO_n2n_vars()
+        obs = super(Turn_v2_n2n,self).reset()
+
+        #self._check_and_set_objectives()
         return obs
+
+
+class Turn_v2(High_level_env_extension,Turn_v2_n2n):
+    def __init__(self,*args,**kwargs):
+        self.actions = []
+        self.actions.append(Left_policy())
+        self.actions.append(Right_policy())
+
+        super(Turn_v2,self).__init__(*args,**kwargs)
 
 
 class Turn_side_v2(Turn_v2_n2n):
