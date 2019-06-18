@@ -956,11 +956,16 @@ class Y(Turn):
 
 
 class NWOO_n2n(Base):
-    def __init__(self, id='NWOO', ignore_obstacles=True, allow_outside=False, *args, **kwargs):
+    def __init__(self, id='NWOO', ignore_obstacles_var=True, allow_outside=False, *args, **kwargs):
         def reward_fn(env):
-            if env._ignore_obstacles is False:
+            done_by_obstacle = False
+            if env._ignore_obstacles_var is True:
                 env._ignore_obstacles()
+            else:
+                if env.obstacle_contacts['count_delay'].sum() > 0:
+                    done_by_obstacle = True
             reward,full_reward,done = default_reward_callback(env)
+            done = True if done_by_obstacle else done
 
             current_nodes = list(env._current_nodes.keys())
             if env._objective in current_nodes:
@@ -980,7 +985,7 @@ class NWOO_n2n(Base):
                 *args, **kwargs)
 
         self._spaces_to_check = 8
-        self._ignore_obstacles = ignore_obstacles
+        self._ignore_obstacles_var = ignore_obstacles_var
         self._close_to_intersection_state = False
         self._reward_fn_NWOO_n2n = reward_fn
 
@@ -1102,8 +1107,8 @@ class NWOO(High_level_env_extension,NWOO_n2n):
 
 
 class NWO_n2n(NWOO_n2n):
-    def __init__(self,ignore_obstacles=True,*args,**kwargs):
-        super(NWO_n2n,self).__init__(ignore_obstacles=ignore_obstacles,*args,**kwargs)
+    def __init__(self,ignore_obstacles_var=False,*args,**kwargs):
+        super(NWO_n2n,self).__init__(ignore_obstacles_var=ignore_obstacles_var,*args,**kwargs)
 
     def _check_early_termination_NWO(self,reward,full_reward,done):
         # if close to an interseciton return done=True
@@ -1111,9 +1116,10 @@ class NWO_n2n(NWOO_n2n):
             current_node = list(self._current_nodes.keys())[0]
             if self._is_close_to_intersection(current_node,10,self._long_dir):
                 done = True
+        
         return reward,full_reward,done
 
-    def check_obstacles_touched(self,obstacle_value=-100):
+    def check_obstacles_touched(self,obstacle_value=-300):
         return super(NWO_n2n,self).check_obstacles_touched(obstacle_value=obstacle_value)
 
 
