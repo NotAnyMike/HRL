@@ -1318,6 +1318,14 @@ class Recovery_delayed(Base):
         self.set_speed(np.random.uniform(0,150))
 
 
+class Recovery_direct(Recovery_delayed):
+    def __init__(self,id='R',negative_reward_recovery_env=-0.1, max_time_out=4.0, *args,**kwargs):
+        super(Recovery_direct,self).__init__(
+                id=id,
+                negative_reward_recovery_env=negative_reward_recovery_env,
+                *args,**kwargs)
+
+
 def play_high_level(env):
     """
     Extension of play function in car_racing for high level policies
