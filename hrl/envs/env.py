@@ -1289,6 +1289,35 @@ class Change_to_right(Change_lane_n2n):
         self.keeping_left = False
 
 
+class Recovery_delayed(Base):
+    def __init__(self,id='R',negative_reward_recovery_env=-0.0, max_time_out=4.0, *args,**kwargs):
+        def reward_fn(env):
+            reward, full_reward, done = default_reward_callback(env)
+
+            reward = env.negative_reward_recovery_env
+            done = False
+
+            reward,done = env.check_timeout(reward,done)
+
+            if env.info['visited'].sum() > 10:
+                reward = 10
+                done = True
+
+            return reward, reward, done
+
+        super(Recovery_delayed,self).__init__(
+                id=id,
+                max_time_out=max_time_out,
+                reward_fn=reward_fn,
+                *args,**kwargs)
+
+        self.negative_reward_recovery_env = negative_reward_recovery_env
+
+    def _position_car_on_reset(self):
+        self.place_agent(self.get_position_outside(np.random.uniform(0,10)))
+        self.set_speed(np.random.uniform(0,150))
+
+
 def play_high_level(env):
     """
     Extension of play function in car_racing for high level policies
