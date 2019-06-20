@@ -1084,6 +1084,13 @@ class NWOO_n2n(Base):
             elif self._directional_state == 'right':
                 self._render_side_arrow('right',self._long_dir)
 
+    def _choice_random_track_from_file(self):
+        if np.random.uniform() >= 0.3:
+            idx = np.random.choice(self.tracks_df[self.tracks_df['x']].index)
+        else:
+            idx = np.random.choice(self.tracks_df[self.tracks_df['t']].index)
+        return idx
+
 
 class NWOO(High_level_env_extension,NWOO_n2n):
     """
