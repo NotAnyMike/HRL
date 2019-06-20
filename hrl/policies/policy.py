@@ -173,6 +173,7 @@ class X(HighPolicy):
             """
             Bad policy that does not handdle good because the 
             error with Turn in x intersections in an open world
+            which is solved by updating Turn to 1.2
             """
             w = "hrl/weights/X/v1.0.pkl"
             self.actions.append(Turn(v=1.0))
@@ -190,8 +191,12 @@ class X(HighPolicy):
 
 class Keep_lane(Policy):
     def __init__(self,v=None,max_steps=10):
+        if v == 1.0:
+            w = "hrl/weights/Keep_lane/v1.0.pkl"
+        else:
+            w = "hrl/weights/Keep_lane/v1.0.pkl"
         super(Keep_lane, self).__init__(
-                "hrl/weights/Keep_lane/v1.0.pkl",
+                w,
                 id='KL',
                 max_steps=max_steps,)
 
@@ -220,3 +225,25 @@ class Change_lane(HighPolicy):
         self.actions.append(Change_to_left())
 
         super(Change_lane,self).__init__(w,id=id,max_steps=0)
+
+
+class NWOO(HighPolicy):
+    def __init__(self,id='NWOO', v=None):
+        self.actions = []
+        if v == 1.0:
+            """
+            this version is suboptimal, relies 100% in Y and forgets about X,
+            it can be due to the unbalance between the number of tracks chosen
+            with X and Y intersections
+            """
+            w = "hrl/weights/NWOO/v1.0_exp93-NWOO-v1.1_weights_final.pkl"
+            self.actions.append(Keep_lane(v=1.0))
+            self.actions.append(X(v=1.0))
+            self.actions.append(Y(v=1.0))
+        else:
+            w = "hrl/weights/NWOO/v1.0_exp93-NWOO-v1.1_weights_final.pkl"
+            self.actions.append(Keep_lane())
+            self.actions.append(X())
+            self.actions.append(Y())
+
+        super(NWOO,self).__init__(w,id=id,max_steps=0)

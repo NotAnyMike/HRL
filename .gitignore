@@ -2,8 +2,9 @@ __pycache__/
 *.swp
 *.egg-info
 *.fuse_hidden*
+*.tar.gz
 
 experiments/
-tracks/
+tracks*/
 .DS_Store
 .ipynb_checkpoints/
