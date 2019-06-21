@@ -21,6 +21,8 @@ from hrl.policies.policy import X as X_policy
 from hrl.policies.policy import Change_to_left as Change_to_left_policy
 from hrl.policies.policy import Change_to_right as Change_to_right_policy
 from hrl.policies.policy import Change_lane as Change_lane_policy
+from hrl.policies.policy import Recovery_delayed as Recovery_delayed_policy
+from hrl.policies.policy import Recovery_direct as Recovery_direct_policy
 from hrl.common.visualiser import PickleWrapper, Plotter, worker
 
 class Base(CarRacing):
@@ -1297,7 +1299,7 @@ class Change_to_right(Change_lane_n2n):
 
 
 class Recovery_delayed(Base):
-    def __init__(self,id='R',negative_reward_recovery_env=-0.0, max_time_out=4.0, *args,**kwargs):
+    def __init__(self,id='D',negative_reward_recovery_env=-0.0, max_time_out=4.0, *args,**kwargs):
         def reward_fn(env):
             reward, full_reward, done = default_reward_callback(env)
 
@@ -1326,11 +1328,21 @@ class Recovery_delayed(Base):
 
 
 class Recovery_direct(Recovery_delayed):
-    def __init__(self,id='R',negative_reward_recovery_env=-0.1, max_time_out=4.0, *args,**kwargs):
+    def __init__(self,id='De',negative_reward_recovery_env=-0.1, max_time_out=4.0, *args,**kwargs):
         super(Recovery_direct,self).__init__(
                 id=id,
                 negative_reward_recovery_env=negative_reward_recovery_env,
                 *args,**kwargs)
+
+
+class Recovery(High_level_env_extension, Recovery_delayed):
+    def __init__(self,id='R',*args,**kwargs):
+
+        self.actions = []
+        self.actions.append(Recovery_direct_policy())
+        self.actions.append(Recovery_delayed_policy())
+
+        super(Recovery,self).__init__(id=id,*args,**kwargs)
 
 
 def play_high_level(env):

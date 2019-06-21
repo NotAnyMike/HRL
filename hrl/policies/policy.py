@@ -247,3 +247,18 @@ class NWOO(HighPolicy):
             self.actions.append(Y())
 
         super(NWOO,self).__init__(w,id=id,max_steps=0)
+
+
+class Recovery_delayed(Policy):
+    def __init__(self,id='De',v=None,max_steps=20):
+        w = "hrl/weights/De/v1.0_exp95_weights_final.pkl"
+        
+        super(Recovery_delayed,self).__init__(w,id=id,max_steps=max_steps)
+
+
+class Recovery_direct(Policy):
+    def __init__(self,id='D',v=None,max_steps=20):
+        w = "hrl/weights/D/v1.0_exp96_weights_final.pkl"
+        
+        super(Recovery_direct,self).__init__(w,id=id,max_steps=max_steps)
+
