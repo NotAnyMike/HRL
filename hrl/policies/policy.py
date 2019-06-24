@@ -34,7 +34,7 @@ class Policy:
         obs, rewards, done, info = env.raw_step(action)
         return obs,rewards,done,info
 
-    def _done(self,env):
+    def _done(self,env,allow_outside=False):
         # The conditions are
         # 1. After n steps
         # 2. If it is outside the track
@@ -48,7 +48,7 @@ class Policy:
         done = False
         if self.n >= self.max_steps:
             done = True # 1
-        elif (left|right).sum() == 0:
+        elif not allow_outside and (left|right).sum() == 0:
             done = True # 2
 
         return done
@@ -255,10 +255,16 @@ class Recovery_delayed(Policy):
         
         super(Recovery_delayed,self).__init__(w,id=id,max_steps=max_steps)
 
+    def _done(self,env,allow_outside=True):
+        super(Recovery_delayed, self)._done(env,allow_outside=allow_outside)
+
 
 class Recovery_direct(Policy):
     def __init__(self,id='D',v=None,max_steps=20):
         w = "hrl/weights/D/v1.0_exp96_weights_final.pkl"
         
         super(Recovery_direct,self).__init__(w,id=id,max_steps=max_steps)
+
+    def _done(self,env,allow_outside=True):
+        super(Recovery_direct, self)._done(env,allow_outside=allow_outside)
 

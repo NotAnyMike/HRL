@@ -1335,7 +1335,7 @@ class Recovery_direct(Recovery_delayed):
                 *args,**kwargs)
 
 
-class Recovery(High_level_env_extension, Recovery_delayed):
+class Recovery(High_level_env_extension, Recovery_direct):
     def __init__(self,id='R',*args,**kwargs):
 
         self.actions = []
