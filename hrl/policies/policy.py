@@ -268,3 +268,24 @@ class Recovery_direct(Policy):
     def _done(self,env,allow_outside=True):
         super(Recovery_direct, self)._done(env,allow_outside=allow_outside)
 
+
+class NWO(HighPolicy):
+    def __init__(self,id='NWO',v=None,max_steps=0):
+        self.actions = []
+        self.actions.append(Keep_lane())
+        self.actions.append(Change_lane())
+
+        w = "hrl/weights/NWO/v0.1_exp99_weights_1028896.pkl"
+
+        super(NWO,self).__init__(w,id=id,max_steps=max_steps)
+
+
+class Recovery(HighPolicy):
+    def __init__(self,id='R',v=None,max_steps=0):
+        self.actions = []
+        self.actions.append(Recovery_direct())
+        self.actions.append(Recovery_delayed())
+
+        w = "hrl/weights/Recovery/v0.1_exp98_weights_24960.pkl"
+
+        super(Recovery,self).__init__(w,id=id,max_steps=max_steps)

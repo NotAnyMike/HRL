@@ -23,6 +23,9 @@ from hrl.policies.policy import Change_to_right as Change_to_right_policy
 from hrl.policies.policy import Change_lane as Change_lane_policy
 from hrl.policies.policy import Recovery_delayed as Recovery_delayed_policy
 from hrl.policies.policy import Recovery_direct as Recovery_direct_policy
+from hrl.policies.policy import NWOO as NWOO_policy
+from hrl.policies.policy import NWO as NWO_policy
+from hrl.policies.policy import Recovery as Recovery_policy
 from hrl.common.visualiser import PickleWrapper, Plotter, worker
 
 class Base(CarRacing):
@@ -934,12 +937,11 @@ class Keep_lane(Base):
         while True:
             obs = super(Keep_lane,self).reset()
             if obs is not False:
-                if self._weak_reset_keep_lane():
-                    break
+                break
 
         return self.step(None)[0]
 
-    def _weak_reset_keep_lane(self):
+    def _position_car_on_reset(self):
         # Place the agent randomly in a good position
         while True:
             tile_id = np.random.choice(list(range(len(self.track))))
@@ -949,8 +951,6 @@ class Keep_lane(Base):
         _,beta,x,y = self._get_position_inside_lane(
                 tile_id,x_pos=self.keeping_left,discrete=True)
         self.place_agent([beta,x,y])
-
-        return True
 
 
 class Y(Turn):
@@ -979,8 +979,7 @@ class NWOO_n2n(Base):
             reward,full_reward,done = env._check_if_in_objective(reward,full_reward,done)
             return reward,full_reward,done
 
-        Base.__init__(
-                self, 
+        super(NWOO_n2n,self).__init__(
                 id=id, 
                 allow_outside=allow_outside, 
                 reward_fn=reward_fn, 
@@ -1130,6 +1129,18 @@ class NWO_n2n(NWOO_n2n):
 
     def check_obstacles_touched(self,obstacle_value=-300):
         return super(NWO_n2n,self).check_obstacles_touched(obstacle_value=obstacle_value)
+
+    def _position_car_on_reset(self):
+        while True:
+            beta,x,y,tile_id = self.get_position_near_obstacle(-8) 
+            if not self._is_close_to_intersection(tile_id,8):
+                break
+
+        x_pos = 1 if np.random.uniform() >= 0.5 else 0
+        _,beta,x,y = self._get_position_inside_lane(
+                tile_id,x_pos=x_pos,discrete=True)
+        self.place_agent([beta,x,y])
+        self.set_speed(np.random.uniform(0,150))
 
 
 class NWO(High_level_env_extension,NWO_n2n):
@@ -1343,6 +1354,27 @@ class Recovery(High_level_env_extension, Recovery_direct):
         self.actions.append(Recovery_delayed_policy())
 
         super(Recovery,self).__init__(id=id,*args,**kwargs)
+
+
+class Nav_n2n(NWOO_n2n):
+    def __init__(self, id='Nav', ignore_obstacles_var=False, allow_outside=True, *args, **kwargs):
+        super(Nav_n2n,self).__init__(
+                id=id, 
+                allow_outside=allow_outside, 
+                *args, **kwargs)
+
+
+class Nav(High_level_env_extension,NWOO_n2n):
+    def __init__(self, id='Nav', ignore_obstacles_var=False, allow_outside=True, *args, **kwargs):
+        self.actions = []
+        self.actions.append(NWOO_policy())
+        self.actions.append(NWO_policy())
+        self.actions.append(Recovery_policy())
+
+        super(Nav,self).__init__(
+                id=id, 
+                allow_outside=allow_outside, 
+                *args, **kwargs)
 
 
 def play_high_level(env):
