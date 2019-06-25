@@ -963,9 +963,9 @@ class NWOO_n2n(Base):
             done_by_obstacle = False
             if env._ignore_obstacles_var is True:
                 env._ignore_obstacles()
-            else:
-                if env.obstacle_contacts['count_delay'].sum() > 0:
-                    done_by_obstacle = True
+            #else:
+                #if env.obstacle_contacts['count_delay'].sum() > 0:
+                    #done_by_obstacle = True
             reward,full_reward,done = default_reward_callback(env)
             done = True if done_by_obstacle else done
 
@@ -1277,7 +1277,6 @@ class Change_lane(High_level_env_extension,Change_lane_n2n):
 
         super(Change_lane,self).__init__(*args,**kwargs)
 
-
     def _check_early_termination_change_lane(self,reward,full_reward,done):
         if self._steps_taken > 2:
             done = True
@@ -1360,11 +1359,15 @@ class Nav_n2n(NWOO_n2n):
     def __init__(self, id='Nav', ignore_obstacles_var=False, allow_outside=True, *args, **kwargs):
         super(Nav_n2n,self).__init__(
                 id=id, 
+                ignore_obstacles_var=ignore_obstacles_var,
                 allow_outside=allow_outside, 
                 *args, **kwargs)
 
+    def check_obstacles_touched(self,obstacle_value=-100):
+        return super(Nav_n2n,self).check_obstacles_touched(obstacle_value=obstacle_value)
 
-class Nav(High_level_env_extension,NWOO_n2n):
+
+class Nav(High_level_env_extension,Nav_n2n):
     def __init__(self, id='Nav', ignore_obstacles_var=False, allow_outside=True, *args, **kwargs):
         self.actions = []
         self.actions.append(NWOO_policy())
@@ -1373,6 +1376,7 @@ class Nav(High_level_env_extension,NWOO_n2n):
 
         super(Nav,self).__init__(
                 id=id, 
+                ignore_obstacles_var=ignore_obstacles_var,
                 allow_outside=allow_outside, 
                 *args, **kwargs)
 

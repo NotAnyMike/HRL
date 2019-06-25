@@ -218,13 +218,13 @@ class Change_to_left(Policy):
 
 
 class Change_lane(HighPolicy):
-    def __init__(self,id='CLane', v=None):
+    def __init__(self,id='CLane', v=None, max_steps=0):
         w = "hrl/weights/Change_lane/v1.0_exp86_weights_final.pkl"
         self.actions = []
         self.actions.append(Change_to_right())
         self.actions.append(Change_to_left())
 
-        super(Change_lane,self).__init__(w,id=id,max_steps=0)
+        super(Change_lane,self).__init__(w,id=id,max_steps=max_steps)
 
 
 class NWOO(HighPolicy):
@@ -250,23 +250,34 @@ class NWOO(HighPolicy):
 
 
 class Recovery_delayed(Policy):
-    def __init__(self,id='De',v=None,max_steps=20):
+    def __init__(self,id='De',v=None,max_steps=10):
         w = "hrl/weights/De/v1.0_exp95_weights_final.pkl"
         
         super(Recovery_delayed,self).__init__(w,id=id,max_steps=max_steps)
 
     def _done(self,env,allow_outside=True):
-        super(Recovery_delayed, self)._done(env,allow_outside=allow_outside)
+        return super(Recovery_delayed, self)._done(env,allow_outside=allow_outside)
 
 
 class Recovery_direct(Policy):
-    def __init__(self,id='D',v=None,max_steps=20):
+    def __init__(self,id='D',v=None,max_steps=10):
         w = "hrl/weights/D/v1.0_exp96_weights_final.pkl"
         
         super(Recovery_direct,self).__init__(w,id=id,max_steps=max_steps)
 
     def _done(self,env,allow_outside=True):
-        super(Recovery_direct, self)._done(env,allow_outside=allow_outside)
+        return super(Recovery_direct, self)._done(env,allow_outside=allow_outside)
+
+
+class Recovery(HighPolicy):
+    def __init__(self,id='R',v=None, max_steps=0):
+        self.actions = []
+        self.actions.append(Recovery_direct())
+        self.actions.append(Recovery_delayed())
+
+        w = "hrl/weights/Recovery/v0.2_exp98_weights_final.pkl"
+
+        super(Recovery,self).__init__(w,id=id,max_steps=max_steps)
 
 
 class NWO(HighPolicy):
@@ -278,14 +289,3 @@ class NWO(HighPolicy):
         w = "hrl/weights/NWO/v0.1_exp99_weights_1028896.pkl"
 
         super(NWO,self).__init__(w,id=id,max_steps=max_steps)
-
-
-class Recovery(HighPolicy):
-    def __init__(self,id='R',v=None,max_steps=0):
-        self.actions = []
-        self.actions.append(Recovery_direct())
-        self.actions.append(Recovery_delayed())
-
-        w = "hrl/weights/Recovery/v0.1_exp98_weights_24960.pkl"
-
-        super(Recovery,self).__init__(w,id=id,max_steps=max_steps)
