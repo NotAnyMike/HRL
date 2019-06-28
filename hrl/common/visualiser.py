@@ -28,11 +28,12 @@ def worker(Plotter,connection):
 
         if connection.poll():
             cmd,val = connection.recv()
+            getattr(plotter,cmd)(*val[0],**val[1])
+            plotter.plot() # after recv to avoid plot without new info
+            connection.send(None)
         else:
             continue
 
-        getattr(plotter,cmd)(*val[0],**val[1])
-        plotter.plot() # after recv to avoid plot without new info
 
 class Plotter():
     def __init__(self):
@@ -55,6 +56,7 @@ class Plotter():
         
         self.data = [1,2,7,3,7,3,8]
         self.active_nodes = set()
+        self.background = self.fig.canvas.copy_from_bbox(self.ax.bbox)
 
     def init_data(self):
         self.connections = [['Nav','NWOO'],['Nav','NWO'],['Nav','R'],
@@ -77,6 +79,9 @@ class Plotter():
 
         self.df = pd.DataFrame({ 'from':self.from_nodes, 'to': self.to_nodes, 'value':self.value})
 
+        # Build your graph
+        self.G=nx.from_pandas_edgelist(self.df, 'from', 'to', create_using=nx.Graph() )
+
     def add_active_policies(self,policy_names):
         for name in policy_names:
             self.add_active_policy(name)
@@ -95,33 +100,35 @@ class Plotter():
         id = list(self.pos.keys()).index(policy_name)
         self.active_nodes.remove(id)
 
-    def plot(self):
+    def plot_metric(self):
         self.data.append(np.random.uniform()*10)
         if len(self.data) > 20:
             self.data = self.data[-20:]
-
-        self.ax.clear()
         self.ax2.clear()
+
+        self.ax2.plot(self.data,c='b')
+        self.fig2.tight_layout()
+        self.canvas2.draw()
+        image2 = self.canvas2.tostring_rgb()
+        size2 = self.canvas2.get_width_height()
+        surf2 = pygame.image.fromstring(image2, size2, "RGB")
+        self.screen.blit(surf2, (400,0))
+        pygame.display.update()
+
+    def plot(self):
+        self.ax.clear()
+        self.fig.canvas.restore_region(self.background)
+        self.fig.canvas.blit(self.ax.bbox)
         color = (255, 100, 0)
         self.screen.fill((255, 255, 255))
         #self.clock.tick(30)
-
-        self.ax2.plot(self.data,c='b')
-        
-        # Build a dataframe with your connections
-
-        # Build your graph
-        G=nx.from_pandas_edgelist(self.df, 'from', 'to', create_using=nx.Graph() )
-
-        # TODO remove this
-        #self.active_nodes = set(np.random.choice(range(len(self.pos)),size=3,replace=False))
 
         color = copy(self.color)
         for i in self.active_nodes:
             color[i] = '#e86d6d'
 
         # Custom the nodes:
-        nx.draw(G, self.pos, ax=self.ax, 
+        nx.draw(self.G, self.pos, ax=self.ax, 
                 with_labels=True, 
                 node_color=color, 
                 node_size=1000, 
@@ -131,24 +138,18 @@ class Plotter():
                 node_shape='s')
 
         self.fig.tight_layout()
-        self.fig2.tight_layout()
 
         # draw the canvas, cache the renderer
         self.canvas.draw()       
-        self.canvas2.draw()
 
         image = self.canvas.tostring_rgb()
-        image2 = self.canvas2.tostring_rgb()
 
         size = self.canvas.get_width_height()
-        size2 = self.canvas2.get_width_height()
 
         surf = pygame.image.fromstring(image, size, "RGB")
-        surf2 = pygame.image.fromstring(image2, size2, "RGB")
         self.screen.blit(surf, (0,0))
-        self.screen.blit(surf2, (400,0))
         pygame.display.flip() 
-        #pygame.display.update()
+
 
 class PickleWrapper():
     def __init__(self,var):
@@ -159,6 +160,7 @@ class PickleWrapper():
 
     def __setstate__(self, obs):
         self.var = pickle.loads(obs)
+
 
 if __name__=='__main__':
     to_pickle = PickleWrapper(lambda: Plotter())

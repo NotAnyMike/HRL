@@ -65,6 +65,7 @@ class Base(CarRacing):
         self.ID = id
         self.active_policies = set([self.ID])
         self.stats = {}
+        self._async_visualiser = True
     
     def _key_press(self,k,mod):
         # to avoid running a process inside a daemon
@@ -91,6 +92,11 @@ class Base(CarRacing):
                     del self.connection
                     del self.ctx
                     self.visualiser_process = None
+            elif k == key.A: # A from async
+                self._async_visualiser = not self._async_visualiser
+                while self.connection.poll():
+                    self.connection.recv()
+                print(self._async_visualiser)
 
         super(Base,self)._key_press(k,mod)
 
@@ -101,11 +107,23 @@ class Base(CarRacing):
         self.active_policies.add(policy_name) 
         if self.visualiser_process is not None:
             self.connection.send(("add_active_policy", [[policy_name],{}]))
+            if self._async_visualiser:
+                if self.connection.poll(None):
+                    self.connection.recv()
+            else:
+                if self.connection.poll():
+                    self.connection.recv()
 
     def remove_active_policy(self,policy_name):
         self.active_policies.remove(policy_name)
         if self.visualiser_process is not None:
             self.connection.send(("remove_active_policy", [[policy_name],{}]))
+            if self._async_visualiser:
+                if self.connection.poll(None):
+                    self.connection.recv()
+            else:
+                if self.connection.poll():
+                    self.connection.recv()
 
     def _ignore_obstacles(self):
         '''
