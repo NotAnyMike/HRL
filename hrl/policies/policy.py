@@ -64,7 +64,6 @@ class HighPolicy(Policy):
 
 class Turn_left(Policy):
     def __init__(self,v=None):
-        #super(Turn_left, self).__init__("hrl/weights/Turn_left/v1.0.pkl",id='TL')
         if v == 1.0:
             """
             This version is used by Turn 1.2
@@ -114,7 +113,6 @@ class Take_center(Policy):
 
 class Turn(HighPolicy):
     def __init__(self,v=None):
-        #super(Turn, self).__init__("hrl/weights/Turn/v1.0.pkl",id='T')
         self.actions = []
         if v==1.2:
             """
