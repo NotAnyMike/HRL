@@ -1,3 +1,4 @@
+from copy import copy
 from pdb import set_trace
 import glob
 import itertools
