@@ -60,6 +60,7 @@ def load_model(
                 'weights':weights_loc}
         id,tb_logger,logs_folder,experiment_csv,experiment_folder =\
                 create_experiment_folder(tag=tag,args=args)
+        print("***** experiment is",experiment_folder)
 
     # Get env
     env = getattr(environments, env)(tensorboard_logger=tb_logger)
