@@ -43,7 +43,7 @@ def create_experiment_folder(folder='experiments',tag=None,args=None):
 
     return id, logger, logs_folder, experiment_csv, experiment_folder
 
-def remove_experiment(experiment_golder, folder, experiment_csv, id):
+def remove_experiment(experiment_folder, folder, experiment_csv, id):
     df = pd.read_csv(experiment_csv, index_col=0)
     df.drop(df.index[id],inplace=True)
     df.to_csv(experiment_csv)
