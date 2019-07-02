@@ -37,6 +37,7 @@ class Base(CarRacing):
             high_level=False,
             id='Nav',
             load_tracks_from="tracks",
+            tensorboard_logger=None,
             *args,
             **kwargs
             ):
@@ -66,6 +67,8 @@ class Base(CarRacing):
         self.active_policies = set([self.ID])
         self.stats = {}
         self._async_visualiser = True
+        self.tb_logger = tensorboard_logger
+        self.total_steps = 0
     
     def _key_press(self,k,mod):
         # to avoid running a process inside a daemon
@@ -237,6 +240,15 @@ class Base(CarRacing):
         gl.glVertex3f(WINDOW_W*d+long_dir*150,WINDOW_H-80-15,0)
         gl.glVertex3f(WINDOW_W*d+long_dir*100,WINDOW_H-80-15,0)
         gl.glEnd()
+
+    def step(self,actions):
+        state,step_reward,done,info = super(Base,self).step(actions)
+        self.total_steps += 1
+        if self.tb_logger is not None and actions is not None:
+            self.tb_logger.log_histogram('episode/actions/', actions, self.total_steps)        
+            if done:
+                self.tb_logger.log_value('episode/episode_reward',self.reward, self.total_steps)
+        return state,step_reward,done,info
 
 
 class High_level_env_extension():

@@ -15,6 +15,7 @@ from stable_baselines import PPO2
 from pynput.keyboard import Key, Listener, KeyCode
 
 from hrl.common.arg_extractor import get_train_args
+from hrl.common.utils import create_experiment_folder,remove_experiment
 from hrl.envs import env as environments
 
 def run_experiment(
@@ -43,44 +44,11 @@ def run_experiment(
     env = SubprocVecEnv([lambda : env() for i in range(env_num)])
 
     args['env_config'] = str(env.env_method("get_org_config")[0])
-
-    if os.path.exists(folder + '/to_delete'):
-        shutil.rmtree(folder + '/to_delete')
     
-    # Check if folder exists and is a valid name
+    # Check if folder exists and if is a valid name
     if not not_save:
-        folder = folder.replace(' ', '_')
-        if os.path.exists(folder):
-            print(" - Folder for experiments found")
-        else:
-            print(" - Creating folder for experiments")
-            os.makedirs(folder)
-
-        # Load cvs of experiments
-        experiment_csv = '/'.join([folder, "experiments.csv"])
-        if os.path.isfile(experiment_csv):
-            print(" - Loading experiments.csv file")
-            df = pd.read_csv(experiment_csv, index_col=0)
-        else:
-            print(" - experiments.csv not found, creating one")
-            df = pd.DataFrame(columns=args.keys())
-            df.to_csv(experiment_csv)
-
-        df = df.append(args, ignore_index=True)
-        df.to_csv(experiment_csv)
-        id = df.index[-1]
-
-        # Creating folder for experiment
-        if tag is None: 
-            experiment_folder = '/'.join([folder,str(df.index[-1])])
-        else: 
-            experiment_folder = '/'.join([folder,str(df.index[-1])+'_'+tag])
-        os.makedirs(experiment_folder)
-
-        logs_folder = experiment_folder + '/logs'
-        logger = Logger(logs_folder+"/extra")
-
-        del df
+        id,logger,logs_folder,experiment_csv,experiment_folder = \
+                create_experiment_folder(folder=folder,tag=tag,args=args)
     else:
         id = -1
         logs_folder= None
@@ -150,11 +118,7 @@ def run_experiment(
 
     except KeyboardInterrupt:
         if not not_save and input("Do you want to DELETE this experiment? (Yes/n) ") == "Yes":
-            df = pd.read_csv(experiment_csv, index_col=0)
-            df.drop(df.index[id],inplace=True)
-            df.to_csv(experiment_csv)
-
-            os.rename(experiment_folder, folder + '/to_delete/')
+            remove_experiment(experiment_golder, folder, experiment_csv, id)
         else:
             if not not_save:
                 model.save(experiment_folder+"/weights_final")

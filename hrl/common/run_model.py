@@ -1,13 +1,16 @@
 from pdb import set_trace
 import glob
+import itertools
 import os
 
-import re
-import numpy as np
 from stable_baselines.common.vec_env import DummyVecEnv
 from stable_baselines import PPO2
+import re
+import numpy as np
+import tensorboard_logger
 
 from hrl.common.arg_extractor import get_load_args
+from hrl.common.utils import create_experiment_folder,remove_experiment
 from hrl.envs import env as environments
 
 def load_model(
@@ -17,6 +20,9 @@ def load_model(
         env='Base',
         full_path=None,
         policy=None,
+        n_steps=None,
+        tensorboard=False,
+        tag=None,
         ):
 
     if policy != None:
@@ -46,8 +52,14 @@ def load_model(
         
         weights_loc = '/'.join([folder,experiment,weights])
 
+    tb_logger = None
+    if tensorboard:
+        args = {} # TODO
+        id,tb_logger,logs_folder,experiment_csv,experiment_folder =\
+                create_experiment_folder(tag=tag,args=args)
+
     # Get env
-    env = getattr(environments, env)()
+    env = getattr(environments, env)(tensorboard_logger=tb_logger)
     if env.high_level: env.auto_render = True
     env = DummyVecEnv([lambda: env])
 
@@ -55,14 +67,24 @@ def load_model(
     model.set_env(env)
 
     obs = env.reset()
-    while True:
-        action, _states = model.predict(obs)
-        obs, rewards, dones, info = env.step(action)
-        env.render()
+    try:
+        for current_step in itertools.count():
+            action, _states = model.predict(obs)
+            obs, rewards, dones, info = env.step(action)
+            env.render()
+
+            if n_steps is not None:
+                if current_step >= n_steps:
+                    break
+    except KeyboardInterrupt:
+        if tensorboard and input("Do you want to DELETE this experiment? (Yes/n) ") == "Yes":
+            remove_experiment(experiment_folder, folder, experiment_csv, id)
+
 
 if __name__ == '__main__':
     # Run arg parser
     args = get_load_args()
 
     # Run run experiment
+    print(args)
     load_model(**args)

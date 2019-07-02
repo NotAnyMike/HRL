@@ -72,6 +72,19 @@ def get_load_args():
     parser.add_argument('--env', type=str, 
             help="The name of the class of the environment to run on, if not \
             specified Base is used")
+
+    # In case path is complex
+    parser.add_argument('--full_path', type=str,
+            help="The full path of the weights, can be relative or absolute, \
+            if this is given then -f,-e,-w are ignored")
+
+    # To simplify loading policies
+    parser.add_argument('--policy','-p', type=str,
+            help="The name of the policy to load, it must have a folder in the \
+            hrl/policies folder and one weight inside, the newest will be run,\
+            if this option is given -f,-e,-w,--full_path are ignored")
+    
+    # To simplify loading weights
     parser.add_argument('--folder', '-f', type=str, 
             help="The folder of the experiments, by default it is 'experiments'")
     parser.add_argument('--experiment', '-e', type=str,
@@ -80,13 +93,15 @@ def get_load_args():
     parser.add_argument('--weights', '-w', type=str,
             help="The name of the weights to load, If not specified we run the \
             last one or 'weights_final'")
-    parser.add_argument('--full_path', type=str,
-            help="The full path of the weights, can be relative or absolute, \
-            if this is given then -f,-e,-w are ignored")
-    parser.add_argument('--policy','-p', type=str,
-            help="The name of the policy to load, it must have a folder in the \
-            hrl/policies folder and one weight inside, the newest will be run,\
-            if this option is given -f,-e,-w,--full_path are ignored")
+
+    # Other parameters for checking performance
+    parser.add_argument('--n_steps','-n', type=int,
+            help="The number of steps to run for, if not specified then infinite")
+    parser.add_argument('--tensorboard','-tb',action='store_true',
+            help="A flag to register the score with tensorboard")
+    parser.add_argument('--tag','-t', type=str,
+            help="The tag for the folder in case of using tensorboard flag")
+
     args = parser.parse_args()
 
     args = vars(args)
