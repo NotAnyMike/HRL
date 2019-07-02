@@ -23,6 +23,7 @@ def load_model(
         n_steps=None,
         tensorboard=False,
         tag=None,
+        no_render=False,
         ):
 
     if policy != None:
@@ -54,7 +55,9 @@ def load_model(
 
     tb_logger = None
     if tensorboard:
-        args = {} # TODO
+        args = {'env':copy(env),
+                'train_steps':n_steps,
+                'weights':weights_loc}
         id,tb_logger,logs_folder,experiment_csv,experiment_folder =\
                 create_experiment_folder(tag=tag,args=args)
 
@@ -71,7 +74,8 @@ def load_model(
         for current_step in itertools.count():
             action, _states = model.predict(obs)
             obs, rewards, dones, info = env.step(action)
-            env.render()
+            if not no_render:
+                env.render()
 
             if n_steps is not None:
                 if current_step >= n_steps:

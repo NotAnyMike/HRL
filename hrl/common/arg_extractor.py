@@ -94,13 +94,16 @@ def get_load_args():
             help="The name of the weights to load, If not specified we run the \
             last one or 'weights_final'")
 
-    # Other parameters for checking performance
+    # Other parameters for checking performance/running exp
     parser.add_argument('--n_steps','-n', type=int,
             help="The number of steps to run for, if not specified then infinite")
     parser.add_argument('--tensorboard','-tb',action='store_true',
             help="A flag to register the score with tensorboard")
     parser.add_argument('--tag','-t', type=str,
             help="The tag for the folder in case of using tensorboard flag")
+    parser.add_argument('--no_render', action='store_true',
+            help="In case you want to log some info, but do not care about \
+            rendering in screen")
 
     args = parser.parse_args()
 
