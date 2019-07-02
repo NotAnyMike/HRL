@@ -65,7 +65,7 @@ def load_model(
 
     # Get env
     env = getattr(environments, env)(tensorboard_logger=tb_logger)
-    if env.high_level: env.auto_render = True
+    if env.high_level and not no_render: env.auto_render = True
     env = DummyVecEnv([lambda: env])
 
     model = PPO2.load(weights_loc)

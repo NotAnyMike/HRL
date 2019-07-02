@@ -1,6 +1,7 @@
 from tensorboard_logger import Logger
 import os
 import pandas as pd
+import shutil
 
 def create_experiment_folder(folder='experiments',tag=None,args=None):
     if folder is None: folder = 'experiments'
