@@ -1411,6 +1411,25 @@ class Nav(High_level_env_extension,Nav_n2n):
                 *args, **kwargs)
 
 
+class Nav_no_obstacles_n2n(Nav_n2n):
+    def __init__(self, id='Nav', ignore_obstacles_var=True, allow_outside=True, *args,**kwargs):
+        super(Nav_no_obstacles_n2n,self).__init__(
+                id=id, 
+                ignore_obstacles_var=ignore_obstacles_var,
+                allow_outside=allow_outside, 
+                *args, **kwargs)
+
+
+class Nav_no_obstacles(Nav):
+    def __init__(self, id='Nav', ignore_obstacles_var=True, allow_outside=True, *args,**kwargs):
+        super(Nav_no_obstacles,self).__init__(
+                id=id, 
+                ignore_obstacles_var=ignore_obstacles_var,
+                allow_outside=allow_outside, 
+                *args, **kwargs)
+
+
+
 def play_high_level(env):
     """
     Extension of play function in car_racing for high level policies
