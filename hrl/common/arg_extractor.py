@@ -97,6 +97,8 @@ def get_load_args():
     # Other parameters for checking performance/running exp
     parser.add_argument('--n_steps','-n', type=int,
             help="The number of steps to run for, if not specified then infinite")
+    parser.add_argument('--n_ep', type=int,
+            help="The number of steps to run for, if not specified then infinite")
     parser.add_argument('--tensorboard','-tb',action='store_true',
             help="A flag to register the score with tensorboard")
     parser.add_argument('--tag','-t', type=str,

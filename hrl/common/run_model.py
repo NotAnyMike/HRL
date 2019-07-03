@@ -25,6 +25,7 @@ def load_model(
         tensorboard=False,
         tag=None,
         no_render=False,
+        n_ep=None
         ):
 
     if policy != None:
@@ -72,6 +73,7 @@ def load_model(
     model.set_env(env)
 
     obs = env.reset()
+    done_count = 0
     try:
         for current_step in itertools.count():
             action, _states = model.predict(obs)
@@ -79,7 +81,16 @@ def load_model(
             if not no_render:
                 env.render()
 
+            if any(dones) and n_ep is not None:
+                done_count += 1
+                if done_count % 20 == 0:
+                    print("episode %i of %i" % (done_count,n_ep))
+                if done_count >= n_ep:
+                    break
+
             if n_steps is not None:
+                if current_step % 1000 == 0:
+                    print("steps %i of %i" % (current_step,n_step))
                 if current_step >= n_steps:
                     break
     except KeyboardInterrupt:
