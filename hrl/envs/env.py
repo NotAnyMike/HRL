@@ -272,12 +272,13 @@ class High_level_env_extension():
         return state, reward, done, info
 
 
+# Deprecated
 class Turn_side(Base):
     def __init__(self, 
             id='T', 
             high_level=False, 
             max_time_out=1.0, 
-            max_step_reward=10, 
+            max_step_reward=100, 
             allow_outside=False,
             reward_function=None,
             *args, **kwargs):
@@ -297,7 +298,7 @@ class Turn_side(Base):
 
             if env.goal_id in np.where(right_old|left_old)[0]:
                 # If in objective
-                reward += 10
+                reward += 100#10
                 done = True
             else:
                 reward,done = env.check_outside(reward,done)
@@ -344,6 +345,8 @@ class Turn_side(Base):
         self.new = True
         self._reward_fn_side = reward_fn
         self.tracks_df = self.tracks_df[(self.tracks_df['t']) | (self.tracks_df['x'])]
+
+        raise DeprecationWarning("Use v2")
 
     def _choice_random_track_from_file(self):
         if np.random.uniform() >= 0.5:
@@ -483,7 +486,7 @@ class Turn_side(Base):
         self.new = True
         return Ok
 
-    def _weak_reset_side(self):
+    def _position_car_on_reset(self):
         """
         This function takes care of ALL the processes to reset the 
         environment, if anything goes wrong, it returns false.
@@ -497,15 +500,6 @@ class Turn_side(Base):
             return False
         else:
             return self._generate_predictions_side(filter)
-    
-    def reset(self):
-        while True:
-            obs = super(Turn_side,self).reset()
-            if obs is not False:
-                if self._weak_reset_side():
-                    break
-        obs = self.step(None)[0]
-        return obs
 
     def _remove_prediction(self, id,lane,direction):
         ###### Removing current new tile from nexts
@@ -531,7 +525,7 @@ class Turn_side(Base):
             else:
                 del self._current_nodes[id]
 
-
+# Deprecated
 class Turn_left(Turn_side):
     def __init__(self,id='TL'):
         super(Turn_left,self).__init__(id=id)
@@ -539,6 +533,7 @@ class Turn_left(Turn_side):
         self._direction = 'left'
 
 
+# Deprecated
 class Turn_right(Turn_side):
     def __init__(self,id='TR'):
         super(Turn_right,self).__init__(id=id)
@@ -546,6 +541,7 @@ class Turn_right(Turn_side):
         self._direction = 'right'
 
 
+# Deprecated
 class Turn(Turn_side):
     def __init__(self,id='T',high_level=True,*args,**kwargs):
         super(Turn,self).__init__(id=id,high_level=high_level,*args,**kwargs)
@@ -556,6 +552,8 @@ class Turn(Turn_side):
         self.actions = {}
         self.actions['left']  = Left_policy()
         self.actions['right'] = Right_policy()
+
+        raise DeprecationWarning("Use v2")
 
     def _set_config(self, **kwargs):
         super(Turn, self)._set_config(**kwargs)
@@ -598,6 +596,7 @@ class Turn(Turn_side):
         self._render_side_arrow()
 
 
+# Deprecated
 class Turn_n2n(Turn):
     def __init__(self,id='T',*args,**kwargs):
         super(Turn,self).__init__(id=id,*args,**kwargs)
@@ -612,6 +611,7 @@ class Turn_n2n(Turn):
         return super(Turn,self).step(action)
 
 
+# Deprecated
 class Take_center(Base):
     def __init__(self, id='TC', reward_fn=None, max_time_out=1.0,*args, **kwargs):
 
@@ -626,7 +626,7 @@ class Take_center(Base):
 
             if env.goal_id in np.where(right_old|left_old)[0]:
                 # If in objective
-                reward += 10
+                reward += 100#10
                 done = True
             else:
                 reward,done = env.check_outside(reward,done)
@@ -667,6 +667,8 @@ class Take_center(Base):
                 )
         self.predictions_id = []
         self._reward_fn_center = reward_fn
+
+        raise DeprecationWarning("Use v2")
 
     def reset(self):
         self.predictions_id = []
@@ -769,6 +771,7 @@ class Take_center(Base):
         self._render_center_arrow()
 
 
+# Deprecated
 class X(Turn,Take_center):
     def __init__(self, 
             left_count=0,
@@ -776,10 +779,11 @@ class X(Turn,Take_center):
             center_count=0,
             total_tracks_generated=0,
             is_current_type_side=None, 
+            max_time_out=0,
             reward_fn=None, 
-            max_step_reward=10,
             id='X',
             high_level=True,
+            allow_outside=False,
             *args, **kwargs):
 
         def reward_fn(env):
@@ -790,8 +794,8 @@ class X(Turn,Take_center):
 
         super(X,self).__init__(
                 id=id,
-                max_step_reward=max_step_reward,
                 high_level=high_level,
+                allow_outside=False,
                 *args,**kwargs)
         self.is_current_type_side = is_current_type_side
         self.reward_fn = reward_fn
@@ -807,6 +811,8 @@ class X(Turn,Take_center):
         self.stats['total_tracks_generated'] = total_tracks_generated
 
         self.tracks_df = self.tracks_df[self.tracks_df['x'] == True]
+
+        raise DeprecationWarning("Use v2")
 
     def _set_config(self, **kwargs):
         super(X, self)._set_config(**kwargs)
@@ -881,6 +887,7 @@ class X(Turn,Take_center):
             self._render_center_arrow()
 
 
+# Deprecated
 class X_n2n(X):
     def __init__(self, 
             left_count=0,
@@ -889,7 +896,6 @@ class X_n2n(X):
             total_tracks_generated=0,
             is_current_type_side=None, 
             reward_fn=None, 
-            max_step_reward=10,
             high_level=False,
             *args, **kwargs):
 
@@ -902,7 +908,6 @@ class X_n2n(X):
 
         super(X,self).__init__(
                 id=id,
-                max_step_reward=max_step_reward,
                 high_level=False,
                 *args,**kwargs)
         self.is_current_type_side = is_current_type_side
@@ -918,6 +923,11 @@ class X_n2n(X):
 
     def step(self,action):
         return self.raw_step(action) # To n2n
+
+
+# Deprecated
+class Y(Turn):
+    pass
 
 
 class Keep_lane(Base):
@@ -981,10 +991,6 @@ class Keep_lane(Base):
         _,beta,x,y = self._get_position_inside_lane(
                 tile_id,x_pos=self.keeping_left,discrete=True)
         self.place_agent([beta,x,y])
-
-
-class Y(Turn):
-    pass
 
 
 class NWOO_n2n(Base):
@@ -1224,7 +1230,7 @@ class Turn_v2_n2n(NWOO_n2n):
 
         speed = 0
         if np.random.uniform() > 0.2:
-            speed = np.random.uniform(0,100)
+            speed = np.random.uniform(0,150)
         self.set_speed(speed)
 
     def reset(self):
@@ -1233,6 +1239,30 @@ class Turn_v2_n2n(NWOO_n2n):
 
         #self._check_and_set_objectives()
         return obs
+
+
+class X_v2_n2n(Turn_v2_n2n):
+    def __init__(self,id='X',*args,**kwargs):
+        super(X_v2_n2n,self).__init__(id=id,*args,**kwargs)
+    
+    def _get_options_for_directional(self,intersection):
+        return super(Turn_v2_n2n,self)._get_options_for_directional(intersection)
+
+    def _choice_random_track_from_file(self):
+        idx = np.random.choice(self.tracks_df[self.tracks_df['x']].index)
+        return idx
+
+
+class Take_center_v2(X_v2_n2n):
+    def __init__(self,id='TC',*args,**kwargs):
+        super(Take_center_v2,self).__init__(id=id,*args,**kwargs)
+
+    def _get_options_for_directional(self,intersection):
+        intersection = deepcopy(intersection)
+        intersection['left'] = None
+        intersection['right'] = None
+        options = super(Take_center_v2,self)._get_options_for_directional(intersection)
+        return options
 
 
 class Turn_v2(High_level_env_extension,Turn_v2_n2n):
@@ -1428,6 +1458,9 @@ class Nav_no_obstacles(Nav):
                 allow_outside=allow_outside, 
                 *args, **kwargs)
 
+
+class Y_v2(Turn_v2):
+    pass
 
 
 def play_high_level(env):
