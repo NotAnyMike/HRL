@@ -1,6 +1,5 @@
 import os
 import shutil
-import psutil
 import sys
 from pdb import set_trace
 from copy import deepcopy,copy
