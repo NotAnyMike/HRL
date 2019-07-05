@@ -63,7 +63,7 @@ class HighPolicy(Policy):
 
 
 class Turn_left(Policy):
-    def __init__(self,v=None):
+    def __init__(self,id='TL',max_steps=40,v=None):
         if v == 1.0:
             """
             This version is used by Turn 1.2
@@ -77,11 +77,11 @@ class Turn_left(Policy):
         else:
             w = "hrl/weights/Turn_left/v1.2_exp84_weights_final.pkl"
 
-        super(Turn_left, self).__init__(w,id='TL')
+        super(Turn_left, self).__init__(w,id=id,max_steps=max_steps)
 
 
 class Turn_right(Policy):
-    def __init__(self,v=None):
+    def __init__(self,id='TR',max_steps=40,v=None):
         if v==1.0:
             """
             This version is used by Turn 1.2
@@ -95,11 +95,11 @@ class Turn_right(Policy):
         else:
             w = "hrl/weights/Turn_right/v1.2_exp85_weights_final.pkl"
 
-        super(Turn_right, self).__init__(w,id='TR')
+        super(Turn_right, self).__init__(w,id=id,max_steps=max_steps)
 
 
 class Take_center(Policy):
-    def __init__(self,v=None):
+    def __init__(self,id='TC',max_steps=40,v=None):
         if v == 1.0:
             """
             faulty version with the same problem of Turn
@@ -108,11 +108,11 @@ class Take_center(Policy):
         else:
             w = "hrl/weights/Take_center/v1.0.pkl"
 
-        super(Take_center, self).__init__(w,id='TC')
+        super(Take_center, self).__init__(w,id=id,max_steps=max_steps)
 
 
 class Turn(HighPolicy):
-    def __init__(self,v=None):
+    def __init__(self,id='T',max_steps=0,v=None):
         self.actions = []
         if v==1.2:
             """
@@ -133,8 +133,8 @@ class Turn(HighPolicy):
 
         super(Turn, self).__init__(
                 weights,
-                id='T',
-                max_steps=0)
+                id=id,
+                max_steps=max_steps)
 
 
 class Y(Policy):
@@ -165,7 +165,7 @@ class Y(Policy):
 
 
 class X(HighPolicy):
-    def __init__(self,v=None):
+    def __init__(self,id='X',max_steps=0,v=None):
         self.actions = []
         if v == 1.0:
             """
@@ -183,19 +183,19 @@ class X(HighPolicy):
 
         super(X,self).__init__(
                 w,
-                id='X',
-                max_steps=0)
+                id=id,
+                max_steps=max_steps)
 
 
 class Keep_lane(Policy):
-    def __init__(self,v=None,max_steps=10):
+    def __init__(self,id='KL',v=None,max_steps=10):
         if v == 1.0:
             w = "hrl/weights/Keep_lane/v1.0.pkl"
         else:
             w = "hrl/weights/Keep_lane/v1.0.pkl"
         super(Keep_lane, self).__init__(
                 w,
-                id='KL',
+                id=id,
                 max_steps=max_steps,)
 
 
@@ -226,7 +226,7 @@ class Change_lane(HighPolicy):
 
 
 class NWOO(HighPolicy):
-    def __init__(self,id='NWOO', v=None):
+    def __init__(self,id='NWOO',max_steps=0, v=None):
         self.actions = []
         if v == 1.0:
             """
@@ -244,7 +244,7 @@ class NWOO(HighPolicy):
             self.actions.append(X())
             self.actions.append(Y())
 
-        super(NWOO,self).__init__(w,id=id,max_steps=0)
+        super(NWOO,self).__init__(w,id=id,max_steps=max_steps)
 
 
 class Recovery_delayed(Policy):
