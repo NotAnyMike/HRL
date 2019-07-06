@@ -1177,7 +1177,8 @@ class NWO_n2n(NWOO_n2n):
         _,beta,x,y = self._get_position_inside_lane(
                 tile_id,x_pos=x_pos,discrete=True)
         self.place_agent([beta,x,y])
-        self.set_speed(np.random.uniform(0,150))
+        # it is better at zero to avoid several failed episodes before starting
+        #self.set_speed(np.random.uniform(0,150)) 
 
 
 class NWO(High_level_env_extension,NWO_n2n):

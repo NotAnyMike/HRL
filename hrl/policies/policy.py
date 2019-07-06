@@ -227,10 +227,14 @@ class Change_to_left(Policy):
 
 class Change_lane(HighPolicy):
     def __init__(self,id='CLane', v=None, max_steps=0):
-        w = "hrl/weights/Change_lane/v1.0_exp86_weights_final.pkl"
+        if v == 1.0:
+            w = "hrl/weights/Change_lane/v1.0_exp86_weights_final.pkl"
+        else:
+            w = "hrl/weights/Change_lane/v1.2_exp113_weights_final.pkl"
+        print(w)
         self.actions = []
-        self.actions.append(Change_to_right())
         self.actions.append(Change_to_left())
+        self.actions.append(Change_to_right())
 
         super(Change_lane,self).__init__(w,id=id,max_steps=max_steps)
 
