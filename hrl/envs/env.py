@@ -525,6 +525,7 @@ class Turn_side(Base):
             else:
                 del self._current_nodes[id]
 
+
 # Deprecated
 class Turn_left(Turn_side):
     def __init__(self,id='TL'):
@@ -1338,7 +1339,7 @@ class Change_lane(High_level_env_extension,Change_lane_n2n):
         super(Change_lane,self).__init__(*args,**kwargs)
 
     def _check_early_termination_change_lane(self,reward,full_reward,done):
-        if self._steps_taken > 2:
+        if self._steps_taken > 1:
             done = True
 
         return reward,full_reward,done
@@ -1349,7 +1350,9 @@ class Change_lane(High_level_env_extension,Change_lane_n2n):
 
     def step(self,action):
         if action is not None: self._steps_taken += 1
-        return super(Change_lane,self).step(action)
+        state,step_reward,done,info = super(Change_lane,self).step(action)
+        done = True
+        return state,step_reward,done,info
 
 
 class Change_to_left(Change_lane_n2n):
