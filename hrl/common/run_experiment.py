@@ -31,6 +31,7 @@ def run_experiment(
         description=None,
         weights=None,
         n_steps=200,
+        gamma=0.99,
         ):
     
     if weights is not None and not os.path.isfile(weights):
@@ -62,6 +63,7 @@ def run_experiment(
                 tensorboard_log=logs_folder,
                 max_grad_norm=100,
                 n_steps=n_steps,
+                gamma=gamma,
                 #policy_kwargs={'data_format':'NCHW'},
                 )
         model.set_env(env)
