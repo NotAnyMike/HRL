@@ -1164,7 +1164,7 @@ class NWO_n2n(NWOO_n2n):
         
         return reward,full_reward,done
 
-    def check_obstacles_touched(self,obstacle_value=-300):
+    def check_obstacles_touched(self,obstacle_value=-50):
         return super(NWO_n2n,self).check_obstacles_touched(obstacle_value=obstacle_value)
 
     def _position_car_on_reset(self):
