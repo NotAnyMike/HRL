@@ -99,8 +99,10 @@ def run_experiment(
     print("# {1:^{0}} #".format(_width-4, ""))
     print("# {1:<{0}} #".format(_width-4, "{0:{2}s}: {1:03d}".format("ID",id,max_k_width)))
     for k,v in args.items():
-        if type(v) in [float,int]:
+        if type(v) is int:
             print("# {1:<{0}} #".format(_width-4,"{0:{2}s}: {1:0d}".format(k,v,max_k_width)))
+        elif type(v) is float:
+            print("# {1:<{0}} #".format(_width-4,"{0:{2}s}: {1:0.3f}".format(k,v,max_k_width)))
         else:
             print("# {1:<{0}} #".format(_width-4,"{0:{2}s}: {1:s}".format(k,str(v),max_k_width)))
     print("{}".format("#"*_width))
