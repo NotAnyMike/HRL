@@ -995,8 +995,13 @@ class Keep_lane(Base):
 
 
 class NWOO_n2n(Base):
-    def __init__(self, id='NWOO', ignore_obstacles_var=True, allow_outside=False, *args, **kwargs):
-        def reward_fn(env):
+    def __init__(self, 
+            id='NWOO', 
+            ignore_obstacles_var=True, 
+            allow_outside=False, 
+            reward_fn=None, 
+            *args, **kwargs):
+        def reward_fn_NWOO(env):
             done_by_obstacle = False
             if env._ignore_obstacles_var is True:
                 env._ignore_obstacles()
@@ -1015,6 +1020,9 @@ class NWOO_n2n(Base):
             reward,full_reward,done = env._check_early_termination_NWO(reward,full_reward,done)
             reward,full_reward,done = env._check_if_in_objective(reward,full_reward,done)
             return reward,full_reward,done
+
+        if reward_fn is None:
+            reward_fn = reward_fn_NWOO
 
         super(NWOO_n2n,self).__init__(
                 id=id, 
@@ -1153,7 +1161,19 @@ class NWOO(High_level_env_extension,NWOO_n2n):
 
 class NWO_n2n(NWOO_n2n):
     def __init__(self,ignore_obstacles_var=False,*args,**kwargs):
-        super(NWO_n2n,self).__init__(ignore_obstacles_var=ignore_obstacles_var,*args,**kwargs)
+        def reward_fn(env):
+            reward = env.check_obstacles_touched()
+            _, done = env.check_timeout(reward,False)
+            if not done:
+                _, done = env.check_unvisited_tiles(reward,False)
+                if not env.allow_outside:
+                    _, done = env.check_outside(reward,False)
+            reward,full_reward, done = env._check_early_termination_NWO(reward,reward,done)
+            default_reward_callback(env)
+
+            return reward,full_reward,done
+
+        super(NWO_n2n,self).__init__(reward_fn=reward_fn,ignore_obstacles_var=ignore_obstacles_var,*args,**kwargs)
 
     def _check_early_termination_NWO(self,reward,full_reward,done):
         # if close to an interseciton return done=True

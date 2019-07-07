@@ -122,7 +122,7 @@ def run_experiment(
 
     except KeyboardInterrupt:
         if not not_save and input("Do you want to DELETE this experiment? (Yes/n) ") == "Yes":
-            remove_experiment(experiment_golder, folder, experiment_csv, id)
+            remove_experiment(experiment_folder, folder, experiment_csv, id)
         else:
             if not not_save:
                 model.save(experiment_folder+"/weights_final")

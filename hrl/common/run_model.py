@@ -54,6 +54,7 @@ def load_model(
                 weights = 'weights_' + str(max(weights_lst)) + '.pkl'
         
         weights_loc = '/'.join([folder,experiment,weights])
+    print("**** Using weights",weights_loc)
 
     tb_logger = None
     if tensorboard:
