@@ -121,3 +121,6 @@
 119,,,Turn_left_v2,,,,,,,,experiments/111_Turn_left_v2.1/weights_12601008.pkl,,,
 120,,,Turn_left_v2,,,,,,,,experiments/111_Turn_left_v2.1/weights_10800912.pkl,,,
 121,,,Turn_left_v2,,,,,,,,hrl/weights/Turn_left/v1.2_exp84_weights_final.pkl,,,
+122,,,Turn_right_v2,,,,,,,,hrl/weights/Turn_right/v1.2_exp85_weights_final.pkl,,,
+123,,,Turn_right_v2,,,,,,,,experiments/112_Turn_right_v2.1/weights_12601008.pkl,,,
+124,,,Turn_right_v2,,,,,,,,experiments/112_Turn_right_v2.1/weights_11700960.pkl,,,

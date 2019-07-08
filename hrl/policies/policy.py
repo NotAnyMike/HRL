@@ -97,8 +97,13 @@ class Turn_right(Policy):
             this version used x as well as straight directionals
             """
             w = "hrl/weights/Turn_right/v1.2_exp85_weights_final.pkl"
+        elif v==1.3:
+            """
+            This version has more training
+            """
+            w = "hrl/weights/Turn_right/v1.3_exp112_weights_12601008.pkl"
         else:
-            w = "hrl/weights/Turn_right/v1.2_exp85_weights_final.pkl"
+            w = "hrl/weights/Turn_right/v1.3_exp112_weights_12601008.pkl"
 
         super(Turn_right, self).__init__(w,id=id,max_steps=max_steps)
 
