@@ -1200,12 +1200,20 @@ class NWO_n2n(NWOO_n2n):
         # it is better at zero to avoid several failed episodes before starting
         #self.set_speed(np.random.uniform(0,150)) 
 
+    def _update_obstacles_info(self):
+        different_count = self.obstacle_contacts['count'] != self.obstacle_contacts['count_delay']
+        zero_count = self.obstacle_contacts['count'] == 0
+        in_contact = self.obstacle_contacts['count'] > 0
+        self.obstacle_contacts['visited'][in_contact] = True
+        #self.obstacle_contacts['visited'][(different_count) & (zero_count)] = False
+        self.obstacle_contacts['count_delay'] = self.obstacle_contacts['count']
+
 
 class NWO(High_level_env_extension,NWO_n2n):
     def __init__(self,id='NWO',*args,**kwargs):
         self.actions = []
-        self.actions.append(Keep_lane_policy())
-        self.actions.append(Change_lane_policy())
+        self.actions.append(Keep_lane_policy(max_steps=50))
+        self.actions.append(Change_lane_policy(max_steps=0))
 
         super(NWO,self).__init__(id=id,*args,**kwargs)
 
