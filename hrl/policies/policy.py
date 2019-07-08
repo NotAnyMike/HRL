@@ -74,8 +74,13 @@ class Turn_left(Policy):
             This version is re trained with x and also solves straight
             """
             w = "hrl/weights/Turn_left/v1.2_exp84_weights_final.pkl"
+        elif v==1.3:
+            """
+            This version has more training
+            """
+            w = "hrl/weights/Turn_left/v1.3_exp111_weights_12601008.pkl"
         else:
-            w = "hrl/weights/Turn_left/v1.2_exp84_weights_final.pkl"
+            w = "hrl/weights/Turn_left/v1.3_exp111_weights_12601008.pkl"
 
         super(Turn_left, self).__init__(w,id=id,max_steps=max_steps)
 
