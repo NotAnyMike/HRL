@@ -63,7 +63,7 @@ class HighPolicy(Policy):
 
 
 class Turn_left(Policy):
-    def __init__(self,id='TL',max_steps=40,v=None):
+    def __init__(self,id='TL',max_steps=4,v=None):
         if v == 1.0:
             """
             This version is used by Turn 1.2
@@ -86,7 +86,7 @@ class Turn_left(Policy):
 
 
 class Turn_right(Policy):
-    def __init__(self,id='TR',max_steps=40,v=None):
+    def __init__(self,id='TR',max_steps=4,v=None):
         if v==1.0:
             """
             This version is used by Turn 1.2

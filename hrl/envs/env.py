@@ -1271,6 +1271,15 @@ class Turn_v2_n2n(NWOO_n2n):
         return obs
 
 
+class Turn_v2(High_level_env_extension,Turn_v2_n2n):
+    def __init__(self,*args,**kwargs):
+        self.actions = []
+        self.actions.append(Left_policy())
+        self.actions.append(Right_policy())
+
+        super(Turn_v2,self).__init__(*args,**kwargs)
+
+
 class X_v2_n2n(Turn_v2_n2n):
     def __init__(self,id='X',*args,**kwargs):
         super(X_v2_n2n,self).__init__(id=id,*args,**kwargs)
@@ -1293,15 +1302,6 @@ class Take_center_v2(X_v2_n2n):
         intersection['right'] = None
         options = super(Take_center_v2,self)._get_options_for_directional(intersection)
         return options
-
-
-class Turn_v2(High_level_env_extension,Turn_v2_n2n):
-    def __init__(self,*args,**kwargs):
-        self.actions = []
-        self.actions.append(Left_policy())
-        self.actions.append(Right_policy())
-
-        super(Turn_v2,self).__init__(*args,**kwargs)
 
 
 class Turn_side_v2(Turn_v2_n2n):
