@@ -932,8 +932,8 @@ class Y(Turn):
 
 
 class Keep_lane(Base):
-    def __init__(self, id='KL', allow_outside=False, *args,**kwargs):
-        def reward_fn(env):
+    def __init__(self, id='KL', allow_outside=False, reward_fn=None,*args,**kwargs):
+        def reward_fn_KL(env):
             # Ignore the obstacles
             env._ignore_obstacles()
 
@@ -964,8 +964,9 @@ class Keep_lane(Base):
                 full_reward *= in_other_lane
             return reward,full_reward,done
 
-        super(Keep_lane, self).__init__(*args, **kwargs, id=id, allow_outside=allow_outside)
-        self.reward_fn = reward_fn
+        if reward_fn is None: reward_fn = reward_fn_KL
+        super(Keep_lane, self).__init__(*args, **kwargs, id=id, allow_outside=allow_outside, reward_fn=reward_fn)
+        self.reward_fn_KL = reward_fn_KL
 
     def _check_early_termination_change_lane(self,reward,full_reward,done):
         return reward,full_reward,done
@@ -1382,6 +1383,31 @@ class Change_lane(High_level_env_extension,Change_lane_n2n):
         state,step_reward,done,info = super(Change_lane,self).step(action)
         if self._steps_taken > 0: done=True
         return state,step_reward,done,info
+
+
+class Change_lane_B(High_level_env_extension,Keep_lane):
+    def __init__(self,reward_fn=None,*args,**kwargs):
+        def reward_fn_CL_B(env):
+            reward, full_reward, done = default_reward_callback(env)
+
+            # if close to an intersection done=True
+            if not done:
+                done = env._check_if_close_to_intersection()
+
+            return reward,full_reward,done
+
+        self.actions = []
+        self.actions.append(Change_to_left_policy(max_steps=4))
+        self.actions.append(Change_to_right_policy(max_steps=4))
+
+        if reward_fn is None:
+            reward_fn = reward_fn_CL_B
+
+        super(Change_lane_B,self).__init__(reward_fn=reward_fn,*args,**kwargs)
+        self.reward_fn_CL_B = reward_fn_CL_B
+
+    def check_obstacles_touched(self,obstacle_value=-50):
+        return super(Change_lane_B,self).check_obstacles_touched(obstacle_value=obstacle_value)
 
 
 class Change_to_left(Change_lane_n2n):
