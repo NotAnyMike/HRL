@@ -1364,15 +1364,13 @@ class Change_lane_n2n(Keep_lane):
 class Change_lane(High_level_env_extension,Change_lane_n2n):
     def __init__(self,*args,**kwargs):
         self.actions = []
-        self.actions.append(Change_to_left_policy(max_steps=4))
-        self.actions.append(Change_to_right_policy(max_steps=4))
+        self.actions.append(Change_to_left_policy(max_steps=10))
+        self.actions.append(Change_to_right_policy(max_steps=10))
 
         super(Change_lane,self).__init__(*args,**kwargs)
 
     def _check_early_termination_change_lane(self,reward,full_reward,done):
-        if self._steps_taken > 1:
-            done = True
-
+        done = False
         return reward,full_reward,done
 
     def reset(self):
@@ -1382,7 +1380,7 @@ class Change_lane(High_level_env_extension,Change_lane_n2n):
     def step(self,action):
         if action is not None: self._steps_taken += 1
         state,step_reward,done,info = super(Change_lane,self).step(action)
-        done = True
+        if self._steps_taken > 0: done=True
         return state,step_reward,done,info
 
 
