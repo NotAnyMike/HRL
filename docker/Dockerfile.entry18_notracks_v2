@@ -1,0 +1,11 @@
+FROM notanymike/hrl_base18
+
+RUN rm -rf HRL/tracks
+
+RUN cd /gym && git pull
+RUN cd /stable-baselines && git pull
+RUN cd /HRL && git pull
+
+COPY entrypoint.sh /tmp/
+ENTRYPOINT ["/tmp/entrypoint.sh"]
+CMD /bin/bash

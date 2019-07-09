@@ -1163,11 +1163,13 @@ class NWO_n2n(NWOO_n2n):
     def __init__(self,ignore_obstacles_var=False,*args,**kwargs):
         def reward_fn(env):
             reward = env.check_obstacles_touched()
-            _, done = env.check_timeout(reward,False)
+            reward, done = env.check_timeout(reward,False)
             if not done:
-                _, done = env.check_unvisited_tiles(reward,False)
+                reward, done = env.check_unvisited_tiles(reward,False)
                 if not env.allow_outside:
-                    _, done = env.check_outside(reward,False)
+                    reward, done = env.check_outside(reward,False)
+                    if not done:
+                        reward, done = env.check_timeout(reward,done)
             reward,full_reward, done = env._check_early_termination_NWO(reward,reward,done)
             default_reward_callback(env)
 
@@ -1362,8 +1364,8 @@ class Change_lane_n2n(Keep_lane):
 class Change_lane(High_level_env_extension,Change_lane_n2n):
     def __init__(self,*args,**kwargs):
         self.actions = []
-        self.actions.append(Change_to_left_policy())
-        self.actions.append(Change_to_right_policy())
+        self.actions.append(Change_to_left_policy(max_steps=4))
+        self.actions.append(Change_to_right_policy(max_steps=4))
 
         super(Change_lane,self).__init__(*args,**kwargs)
 

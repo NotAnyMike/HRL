@@ -14,6 +14,9 @@ this repo mainly uses two big repos, `stable-baselines` and `gym2`.
 3. Install pandas with `pip install pandas`
 
 
+it requires pyglet 1.3.2
+
+
 ## How to run experiments
 
 There are two ways of running experiments which support logging and saving of all the experiment important information, the first one is using the function `run_experiment` in the `source` folder. The second way to run an experiment is using direclty the console. All the files will be saved in a folder inside the `folder` folder and will be named `<id>_<tag>` where `<id>` is the id in the id experiments table and `<tag>` is the tag argument.

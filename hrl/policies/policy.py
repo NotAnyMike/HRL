@@ -213,6 +213,13 @@ class Change_to_right(Policy):
     def __init__(self,v=None,max_steps=50):
         if v == 1.0:
             w = "hrl/weights/CRight/v1.0_exp83_weights_final.pkl"
+        elif v ==1.05:
+            """
+            it has 6m of steps more than v1.1 but is not better
+            """
+            w = "hrl/weights/CRight/v1.05_exp115_weights_2402304.pkl"
+        elif: v==1.1:
+            w = "hrl/weights/CRight/v1.1_exp109_weights_final.pkl"
         else:
             w = "hrl/weights/CRight/v1.1_exp109_weights_final.pkl"
 
