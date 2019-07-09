@@ -1362,13 +1362,13 @@ class Change_lane_n2n(Keep_lane):
         return obs
 
 
-class Change_lane(High_level_env_extension,Change_lane_n2n):
+class Change_lane_A(High_level_env_extension,Change_lane_n2n):
     def __init__(self,*args,**kwargs):
         self.actions = []
         self.actions.append(Change_to_left_policy(max_steps=10))
         self.actions.append(Change_to_right_policy(max_steps=10))
 
-        super(Change_lane,self).__init__(*args,**kwargs)
+        super(Change_lane_A,self).__init__(*args,**kwargs)
 
     def _check_early_termination_change_lane(self,reward,full_reward,done):
         done = False
@@ -1376,11 +1376,11 @@ class Change_lane(High_level_env_extension,Change_lane_n2n):
 
     def reset(self):
         self._steps_taken = 0
-        return super(Change_lane,self).reset()
+        return super(Change_lane_A,self).reset()
 
     def step(self,action):
         if action is not None: self._steps_taken += 1
-        state,step_reward,done,info = super(Change_lane,self).step(action)
+        state,step_reward,done,info = super(Change_lane_A,self).step(action)
         if self._steps_taken > 0: done=True
         return state,step_reward,done,info
 
