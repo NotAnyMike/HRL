@@ -1386,7 +1386,7 @@ class Change_lane_A(High_level_env_extension,Change_lane_n2n):
 
 
 class Change_lane_B(High_level_env_extension,Keep_lane):
-    def __init__(self,reward_fn=None,*args,**kwargs):
+    def __init__(self,id='CLane',reward_fn=None,*args,**kwargs):
         def reward_fn_CL_B(env):
             reward, full_reward, done = default_reward_callback(env)
 
@@ -1403,7 +1403,7 @@ class Change_lane_B(High_level_env_extension,Keep_lane):
         if reward_fn is None:
             reward_fn = reward_fn_CL_B
 
-        super(Change_lane_B,self).__init__(reward_fn=reward_fn,*args,**kwargs)
+        super(Change_lane_B,self).__init__(id=id,reward_fn=reward_fn,*args,**kwargs)
         self.reward_fn_CL_B = reward_fn_CL_B
 
     def check_obstacles_touched(self,obstacle_value=-50):

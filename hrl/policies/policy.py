@@ -233,8 +233,12 @@ class Change_to_left(Policy):
     def __init__(self,v=None,max_steps=50):
         if v == 1.0:
             w = "hrl/weights/CLeft/v1.0_exp82_weights_final.pkl"
-        else:
+        elif v==1.2:
             w = "hrl/weights/CLeft/v1.1_exp108_weights_final.pkl"
+        elif v==1.3:
+            w = "hrl/weights/CLeft/v1.2_exp127_weights_final.pkl"
+        else:
+            w = "hrl/weights/CLeft/v1.2_exp127_weights_final.pkl"
             
         super(Change_to_left, self).__init__(
                 w,
