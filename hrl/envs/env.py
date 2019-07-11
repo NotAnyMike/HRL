@@ -965,6 +965,7 @@ class Keep_lane(Base):
             return reward,full_reward,done
 
         if reward_fn is None: reward_fn = reward_fn_KL
+
         super(Keep_lane, self).__init__(*args, **kwargs, id=id, allow_outside=allow_outside, reward_fn=reward_fn)
         self.reward_fn_KL = reward_fn_KL
 
@@ -1163,16 +1164,8 @@ class NWOO(High_level_env_extension,NWOO_n2n):
 class NWO_n2n(NWOO_n2n):
     def __init__(self,ignore_obstacles_var=False,*args,**kwargs):
         def reward_fn(env):
-            reward = env.check_obstacles_touched()
-            reward, done = env.check_timeout(reward,False)
-            if not done:
-                reward, done = env.check_unvisited_tiles(reward,False)
-                if not env.allow_outside:
-                    reward, done = env.check_outside(reward,False)
-                    if not done:
-                        reward, done = env.check_timeout(reward,done)
-            reward,full_reward, done = env._check_early_termination_NWO(reward,reward,done)
-            default_reward_callback(env)
+            reward,full_reward,done = default_reward_callback(env)
+            reward,full_reward,done = env._check_early_termination_NWO(reward,reward,done)
 
             return reward,full_reward,done
 
@@ -1215,7 +1208,7 @@ class NWO_n2n(NWOO_n2n):
 class NWO(High_level_env_extension,NWO_n2n):
     def __init__(self,id='NWO',*args,**kwargs):
         self.actions = []
-        self.actions.append(Keep_lane_policy(max_steps=50))
+        self.actions.append(Keep_lane_policy(max_steps=4))
         self.actions.append(Change_lane_policy(max_steps=0))
 
         super(NWO,self).__init__(id=id,*args,**kwargs)

@@ -198,7 +198,7 @@ class X(HighPolicy):
 
 
 class Keep_lane(Policy):
-    def __init__(self,id='KL',v=None,max_steps=10):
+    def __init__(self,id='KL',v=None,max_steps=4):
         if v == 1.0:
             w = "hrl/weights/Keep_lane/v1.0.pkl"
         else:
@@ -210,7 +210,7 @@ class Keep_lane(Policy):
 
 
 class Change_to_right(Policy):
-    def __init__(self,v=None,max_steps=50):
+    def __init__(self,v=None,max_steps=4):
         if v == 1.0:
             w = "hrl/weights/CRight/v1.0_exp83_weights_final.pkl"
         elif v ==1.05:
@@ -230,7 +230,7 @@ class Change_to_right(Policy):
 
 
 class Change_to_left(Policy):
-    def __init__(self,v=None,max_steps=50):
+    def __init__(self,v=None,max_steps=4):
         if v == 1.0:
             w = "hrl/weights/CLeft/v1.0_exp82_weights_final.pkl"
         elif v==1.2:
@@ -250,9 +250,16 @@ class Change_lane(HighPolicy):
     def __init__(self,id='CLane', v=None, max_steps=0):
         if v == 1.0:
             w = "hrl/weights/Change_lane/v1.0_exp86_weights_final.pkl"
-        else:
+        elif v==1.1:
             w = "hrl/weights/Change_lane/v1.2_exp113_weights_final.pkl"
-        print(w)
+        elif v==2.0:
+            """
+            This version does avoid obstacles
+            """
+            w = "hrl/weights/Change_lane/v2.0_135_CL_B_weights_3500928.pkl"
+        else:
+            w = "hrl/weights/Change_lane/v2.0_135_CL_B_weights_3500928.pkl"
+
         self.actions = []
         self.actions.append(Change_to_left())
         self.actions.append(Change_to_right())

@@ -141,3 +141,9 @@
 139,,,Change_to_left,,,,,,,,experiments/127_CLeft_1.3/weights_5855616.pkl,,,
 140,,,Change_to_left,,,,,,,,hrl/weights/CLeft/v1.1_exp108_weights_final.pkl,,,
 141,,,Change_to_left,,,,,,,,experiments/127_CLeft_1.3/weights_4053888.pkl,,,
+142,,,Change_lane_B,,,,,,,,experiments/135_CL_B_cont/weights_2500448.pkl,,,
+143,,,Change_lane_B,,,,,,,,experiments/135_CL_B_cont/weights_final.pkl,,,
+144,,,Change_lane_B,,,,,,,,experiments/135_CL_B_cont/weights_3500928.pkl,,,
+145,,,Change_lane_B,,,,,,,,experiments/134_CL_B/weights_final.pkl,,,
+146,,,Change_lane_B,,,,,,,,experiments/135_CL_B_cont/weights_2000208.pkl,,,
+147,outside_experiments,Turn_maxsteps4_new_cont,Turn_v2,856800.0,40000.0,2000000.0,0.0,"{'allow_reverse': False, 'grayscale': 1, 'show_info_panel': False, 'verbose': 0, 'discretize_actions': 'hard', 'num_tracks': 2, 'num_lanes': 2, 'num_lanes_changes': 0, 'num_obstacles': 100, 'max_time_out': 2.0, 'frames_per_state': 4, 'max_step_reward': 1, 'reward_fn': <function NWOO_n2n.__init__.<locals>.reward_fn_NWOO at 0x7f90fdffed90>, 'random_obstacle_x_position': False, 'random_obstacle_shape': False, 'load_tracks_from': 'tracks', 'allow_outside': False}",4.0,"Using maxsteps 4 and new weights, plus increasing n_steps to 200",outside_experiments/136_Turn_maxsteps4_new/weights_856800.pkl,200.0,,0.99
