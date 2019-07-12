@@ -136,8 +136,12 @@ class Turn(HighPolicy):
             weights = "hrl/weights/Turn/v1.3_exp92_weights_final.pkl"
             self.actions.append(Turn_left(v=1.2))
             self.actions.append(Turn_right(v=1.2))
+        elif v==1.4:
+            weights = "hrl/weights/Turn/v1.4_exp147_weights_1347216.pkl"
+            self.actions.append(Turn_left(v=1.3))
+            self.actions.append(Turn_right(v=1.3))
         else:
-            weights = "hrl/weights/Turn/v1.3_exp92_weights_final.pkl"
+            weights = "hrl/weights/Turn/v1.4_exp147_weights_1347216.pkl"
             self.actions.append(Turn_left())
             self.actions.append(Turn_right())
 
