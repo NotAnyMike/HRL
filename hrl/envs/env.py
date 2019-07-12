@@ -1288,6 +1288,14 @@ class X_v2_n2n(Turn_v2_n2n):
         return idx
 
 
+class X_v2(High_level_env_extension,X_v2_n2n):
+    def __init__(self,*args,**kwargs):
+        self.actions = []
+        self.actions.append(Turn_policy())
+        self.actions.append(Take_center_policy())
+
+        super(X_v2,self).__init__(*args,**kwargs)
+
 class Take_center_v2(X_v2_n2n):
     def __init__(self,id='TC',*args,**kwargs):
         super(Take_center_v2,self).__init__(id=id,*args,**kwargs)

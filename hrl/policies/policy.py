@@ -109,7 +109,7 @@ class Turn_right(Policy):
 
 
 class Take_center(Policy):
-    def __init__(self,id='TC',max_steps=40,v=None):
+    def __init__(self,id='TC',max_steps=4,v=None):
         if v == 1.0:
             """
             faulty version with the same problem of Turn
