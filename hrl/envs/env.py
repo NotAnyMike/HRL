@@ -26,6 +26,7 @@ from hrl.policies.policy import Recovery_direct as Recovery_direct_policy
 from hrl.policies.policy import NWOO as NWOO_policy
 from hrl.policies.policy import NWO as NWO_policy
 from hrl.policies.policy import Recovery as Recovery_policy
+from hrl.policies.policy import Recovery_v2 as Recovery_v2_policy
 from hrl.common.visualiser import PickleWrapper, Plotter, worker
 
 class Base(CarRacing):
@@ -1296,6 +1297,7 @@ class X_v2(High_level_env_extension,X_v2_n2n):
 
         super(X_v2,self).__init__(*args,**kwargs)
 
+
 class Take_center_v2(X_v2_n2n):
     def __init__(self,id='TC',*args,**kwargs):
         super(Take_center_v2,self).__init__(id=id,*args,**kwargs)
@@ -1491,7 +1493,7 @@ class Nav(High_level_env_extension,Nav_n2n):
         self.actions = []
         self.actions.append(NWOO_policy())
         self.actions.append(NWO_policy())
-        self.actions.append(Recovery_policy())
+        self.actions.append(Recovery_v2_policy())
 
         super(Nav,self).__init__(
                 id=id, 

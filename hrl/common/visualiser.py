@@ -61,9 +61,9 @@ class Plotter():
     def init_data(self):
         self.connections = [['Nav','NWOO'],['Nav','NWO'],['Nav','R'],
             ['NWOO','X'],['NWOO','Y'],['NWOO','KL'],['NWO','KL'],
-            ['NWO','CLane'],['R','D'],['R','De'],['X','TC'],
+            ['NWO','CLane'],['X','TC'],
             ['X','T'],['Y','T'],['CLane','CL'],['CLane','CR'],
-            ['T','TL'],['T','TR'],
+            ['T','TL'],['T','TR'],#,['R','D'],['R','De'],
         ]
         self.from_nodes = list(zip(*self.connections))[0]
         self.to_nodes =   list(zip(*self.connections))[1]
@@ -71,7 +71,7 @@ class Plotter():
 
         self.pos = {'Nav': (50, 40),'NWOO': (40,30),'NWO':(50,30),
                 'R': (60,30),'X':(35,20),'Y':(40,20),'KL':(45,20),
-                'CLane':(50,20),'D':(57.5,20),'De':(62.5,20),
+                'CLane':(50,20),#'D':(57.5,20),'De':(62.5,20),
                 'TC':(32.5,10),'T':(37.5,10),'CL':(47,10),
                 'CR':(53,10),'TL':(35,0),'TR':(40,0)}
 

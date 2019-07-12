@@ -153,3 +153,6 @@
 151,,,Turn_v2,,,,,,,,experiments/147_Turn_maxsteps4_new_cont/weights_final.pkl,,,
 152,,,Turn_v2,,,,,,,,experiments/136_Turn_maxsteps4_new/weights_856800.pkl,,,
 153,,,Turn_v2,,,,,,,,experiments/136_Turn_maxsteps4_new/weights_489600.pkl,,,
+154,outside_experiments,X_max_steps_v1.1,X_v2,0.0,60000.0,3000000.0,0.0,"{'allow_reverse': False, 'grayscale': 1, 'show_info_panel': False, 'verbose': 0, 'discretize_actions': 'hard', 'num_tracks': 2, 'num_lanes': 2, 'num_lanes_changes': 0, 'num_obstacles': 100, 'max_time_out': 2.0, 'frames_per_state': 4, 'max_step_reward': 1, 'reward_fn': <function NWOO_n2n.__init__.<locals>.reward_fn_NWOO at 0x7fbe50328620>, 'random_obstacle_x_position': False, 'random_obstacle_shape': False, 'load_tracks_from': 'tracks', 'allow_outside': False}",4.0,X_v2 with new Turn weights and maxsteps=4,,200.0,,0.99
+155,,,Recovery_direct,,,,,,,,hrl/weights/De/v1.0_exp95_weights_final.pkl,,,
+156,,,Recovery_direct,,,,,,,,hrl/weights/D/v1.0_exp96_weights_final.pkl,,,

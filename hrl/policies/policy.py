@@ -313,6 +313,7 @@ class Recovery_direct(Policy):
         return super(Recovery_direct, self)._done(env,allow_outside=allow_outside)
 
 
+# Deprecated
 class Recovery(HighPolicy):
     def __init__(self,id='R',v=None, max_steps=0):
         self.actions = []
@@ -322,6 +323,18 @@ class Recovery(HighPolicy):
         w = "hrl/weights/Recovery/v0.2_exp98_weights_final.pkl"
 
         super(Recovery,self).__init__(w,id=id,max_steps=max_steps)
+
+        raise DeprecationWarning("Use v2")
+
+
+class Recovery_v2(Policy):
+    def __init__(self,id='R',v=None,max_steps=4):
+        w = "hrl/weights/Recovery/v2.0_exp96_weights_final.pkl"
+        
+        super(Recovery_v2,self).__init__(w,id=id,max_steps=max_steps)
+
+    def _done(self,env,allow_outside=True):
+        return super(Recovery_v2, self)._done(env,allow_outside=allow_outside)
 
 
 class NWO(HighPolicy):
