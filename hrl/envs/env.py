@@ -1282,7 +1282,17 @@ class X_v2_n2n(Turn_v2_n2n):
         super(X_v2_n2n,self).__init__(id=id,*args,**kwargs)
     
     def _get_options_for_directional(self,intersection):
-        return super(Turn_v2_n2n,self)._get_options_for_directional(intersection)
+        direction = None
+        if np.random.uniform() >= 0.5:
+            if 'straight' in intersection:
+                direction = ['straight']
+        else:
+            if 'straight' in intersection:
+                direction = ['left','right']
+        if direction == None:
+            direction = super(Turn_v2_n2n,self)._get_options_for_directional(intersection)
+
+        return direction
 
     def _choice_random_track_from_file(self):
         idx = np.random.choice(self.tracks_df[self.tracks_df['x']].index)
