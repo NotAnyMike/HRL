@@ -190,8 +190,12 @@ class X(HighPolicy):
             w = "hrl/weights/X/v1.0.pkl"
             self.actions.append(Turn(v=1.0))
             self.actions.append(Take_center(v=1.0))
+        elif v == 1.1:
+            w = "hrl/weights/X/v1.1_exp160_weights_784992.pkl"
+            self.actions.append(Turn())
+            self.actions.append(Take_center())
         else:
-            w = "hrl/weights/X/v1.0.pkl"
+            w = "hrl/weights/X/v1.1_exp160_weights_784992.pkl"
             self.actions.append(Turn())
             self.actions.append(Take_center())
 

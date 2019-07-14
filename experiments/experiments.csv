@@ -159,3 +159,8 @@
 157,,,NWO,,,,,,,,experiments/148_NWO_2.0/weights_final.pkl,,,
 158,,,NWO,,,,,,,,experiments/148_NWO_2.0/weights_2777664.pkl,,,
 159,,,NWO,,,,,,,,experiments/148_NWO_2.0/weights_2053056.pkl,,,
+160,outside_experiments,X_max_steps_v1.1_NEW,X_v2,0.0,60000.0,3000000.0,0.0,"{'allow_reverse': False, 'grayscale': 1, 'show_info_panel': False, 'verbose': 0, 'discretize_actions': 'hard', 'num_tracks': 2, 'num_lanes': 2, 'num_lanes_changes': 0, 'num_obstacles': 100, 'max_time_out': 2.0, 'frames_per_state': 4, 'max_step_reward': 1, 'reward_fn': <function NWOO_n2n.__init__.<locals>.reward_fn_NWOO at 0x7f26a03707b8>, 'random_obstacle_x_position': False, 'random_obstacle_shape': False, 'load_tracks_from': 'tracks', 'allow_outside': False}",4.0,X_v2 with new Turn weights and maxsteps=4,,200.0,,0.99
+161,,,X_v2,,,,,,,,experiments/160_X_max_steps_v1.1_NEW/weights_784992.pkl,,,
+162,,,X_v2,,,,,,,,experiments/160_X_max_steps_v1.1_NEW/weights_543456.pkl,,,
+163,,,X_v2,,,,,,,,experiments/160_X_max_steps_v1.1_NEW/weights_1026528.pkl,,,
+164,,,X_v2,,,,,,,,experiments/160_X_max_steps_v1.1_NEW/weights_1268064.pkl,,,
