@@ -347,6 +347,11 @@ class NWO(HighPolicy):
         self.actions.append(Keep_lane())
         self.actions.append(Change_lane())
 
-        w = "hrl/weights/NWO/v0.1_exp99_weights_1028896.pkl"
+        if v==0.1:
+            w = "hrl/weights/NWO/v0.1_exp99_weights_1028896.pkl"
+        elif v==1.0:
+            w = "hrl/weights/NWO/v1.0_exp148_weights_2053056.pkl"
+        else:
+            w = "hrl/weights/NWO/v1.0_exp148_weights_2053056.pkl"
 
         super(NWO,self).__init__(w,id=id,max_steps=max_steps)
