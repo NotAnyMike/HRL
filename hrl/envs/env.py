@@ -1117,7 +1117,10 @@ class NWOO_n2n(Base):
                                 self._neg_objectives.append(objective)
 
     def _get_options_for_directional(self,intersection):
-        return [key for key,val in intersection.items() if val is not None]
+        if 'straight' in intersection and np.random.uniform() > 0.2:
+            return ['straight']
+        else:
+            return [key for key,val in intersection.items() if val is not None]
 
     def step(self,action):
         self._check_and_set_objectives()
@@ -1134,11 +1137,18 @@ class NWOO_n2n(Base):
                 self._render_side_arrow('right',self._long_dir)
 
     def _choice_random_track_from_file(self):
-        if np.random.uniform() >= 0.3:
+        if np.random.uniform() >= 0.0:#0.3:
             idx = np.random.choice(self.tracks_df[self.tracks_df['x']].index)
         else:
             idx = np.random.choice(self.tracks_df[self.tracks_df['t']].index)
         return idx
+
+    def _position_car_on_reset(self):
+        beta,x,y = self.get_position_near_junction('x',13)
+        angle_noise = np.random.uniform(-1,1)*np.pi/12
+        beta += angle_noise
+
+        self.place_agent([beta,x,y])
 
 
 class NWOO(High_level_env_extension,NWOO_n2n):
