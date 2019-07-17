@@ -159,6 +159,10 @@ class Y(Policy):
             this version is a poorly one in an open environment
             """
             self.turn = Turn(v=1.2)
+        elif v==1.3:
+            self.turn = Turn(v=1.3)
+        elif v==1.4:
+            self.turn = Turn(v=1.4)
         else:
             self.turn = Turn()
 
@@ -288,8 +292,16 @@ class NWOO(HighPolicy):
             self.actions.append(Keep_lane(v=1.0))
             self.actions.append(X(v=1.0))
             self.actions.append(Y(v=1.0))
+        elif v == 1.1:
+            """
+            This version was trained with all new policies plus max_steps = 4
+            """
+            w = "hrl/weights/NWOO/v1.1_exp166_weights_final.pkl"
+            self.actions.append(Keep_lane(v=1.0))
+            self.actions.append(X(v=1.1))
+            self.actions.append(Y(v=1.4))
         else:
-            w = "hrl/weights/NWOO/v1.0_exp93-NWOO-v1.1_weights_final.pkl"
+            w = "hrl/weights/NWOO/v1.1_exp166_weights_final.pkl"
             self.actions.append(Keep_lane())
             self.actions.append(X())
             self.actions.append(Y())
