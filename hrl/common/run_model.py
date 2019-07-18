@@ -75,6 +75,7 @@ def load_model(
 
     obs = env.reset()
     done_count = 0
+    reward = 0
     try:
         for current_step in itertools.count():
             action, _states = model.predict(obs)
@@ -82,6 +83,9 @@ def load_model(
             if not no_render:
                 env.render()
 
+            if any(dones) and tb_logger is None:
+                print(reward)
+            reward = env.get_attr("reward")[0]
             if any(dones) and n_ep is not None:
                 done_count += 1
                 if done_count % 20 == 0:

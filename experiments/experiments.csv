@@ -182,3 +182,4 @@
 180,,,NWOO,,,,,,,,experiments/172_NWOO_v1.1_Balanced_cont/weights_5109744.pkl,,,
 181,,,NWOO,,,,,,,,experiments/167_NWOO_v1.1_Balanced/weights_2528064.pkl,,,
 182,,,NWOO,,,,,,,,experiments/172_NWOO_v1.1_Balanced_cont/weights_4868976.pkl,,,
+183,outside_experiments,NWOO_v1.3_fixed,NWOO,0.0,120000.0,6000000.0,0.0,"{'allow_reverse': False, 'grayscale': 1, 'show_info_panel': False, 'verbose': 0, 'discretize_actions': 'hard', 'num_tracks': 2, 'num_lanes': 2, 'num_lanes_changes': 0, 'num_obstacles': 100, 'max_time_out': 2.0, 'frames_per_state': 4, 'max_step_reward': 1, 'reward_fn': <function NWOO_n2n.__init__.<locals>.reward_fn_NWOO at 0x7f7a5c3eab70>, 'random_obstacle_x_position': False, 'random_obstacle_shape': False, 'load_tracks_from': 'tracks', 'allow_outside': False}",4.0,Fixing error with visited tiles and straight directional,,300.0,,0.99

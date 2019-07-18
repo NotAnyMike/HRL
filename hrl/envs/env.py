@@ -1054,6 +1054,11 @@ class NWOO_n2n(Base):
             # Clean visited tiles
             self.info['visited'] = False
         return reward,full_reward,done
+    
+    def check_unvisited_tiles(self,reward,done):
+        if (self.t % 5) <= 2/60:
+            self.info['visited'] = False
+        return reward,done
 
     def reset(self):
         self._clean_NWOO_n2n_vars()
@@ -1117,7 +1122,7 @@ class NWOO_n2n(Base):
                                 self._neg_objectives.append(objective)
 
     def _get_options_for_directional(self,intersection):
-        if 'straight' in intersection and np.random.uniform() > 0.2:
+        if intersection['straight'] is not None and np.random.uniform() > 0.2:
             return ['straight']
         else:
             return [key for key,val in intersection.items() if val is not None]
@@ -1170,6 +1175,10 @@ class NWOO(High_level_env_extension,NWOO_n2n):
         state, reward, done, info = super(NWOO,self).step(action) 
 
         return state, reward, done, info
+    
+    def check_univisited_tiles(self,reward,done):
+        return reward,done
+
 
 
 class NWO_n2n(NWOO_n2n):
