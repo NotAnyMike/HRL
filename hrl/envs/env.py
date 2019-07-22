@@ -1180,7 +1180,6 @@ class NWOO(High_level_env_extension,NWOO_n2n):
         return reward,done
 
 
-
 class NWO_n2n(NWOO_n2n):
     def __init__(self,ignore_obstacles_var=False,*args,**kwargs):
         def reward_fn(env):

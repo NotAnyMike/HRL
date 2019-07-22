@@ -367,3 +367,18 @@ class NWO(HighPolicy):
             w = "hrl/weights/NWO/v1.0_exp148_weights_2053056.pkl"
 
         super(NWO,self).__init__(w,id=id,max_steps=max_steps)
+
+
+class Nav(HighPolicy):
+    def __init__(self,v=None,id="Nav",max_steps=0):
+        self.actions = []
+        self.actions.append(NWOO())
+        self.actions.append(NWO())
+        self.actions.append(Recovery_v2())
+
+        if v==0.9:
+            w = "hrl/weights/Nav/v0.9_exp186_weights_4227696.pkl"
+        else:
+            w = "hrl/weights/Nav/v0.9_exp186_weights_4227696.pkl"
+
+        super(Nav,self).__init__(w,id=id,max_steps=max_steps)
