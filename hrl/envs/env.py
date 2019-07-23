@@ -1228,6 +1228,16 @@ class NWOO_B(High_level_env_extension,NWOO_B_n2n):
         super(NWOO_B,self).__init__(id=id,high_level=high_level,*args,**kwargs)
 
 
+class NWOO_C(High_level_env_extension,NWOO_B_n2n):
+    def __init__(self,id="NWOO",high_level=True,*args,**kwargs):
+        self.actions = []
+        self.actions.append(Keep_lane_policy())
+        self.actions.append(Turn_policy())
+        self.actions.append(Take_center_policy())
+
+        super(NWOO_C,self).__init__(id=id,high_level=high_level,*args,**kwargs)
+
+
 class NWO_n2n(NWOO_n2n):
     def __init__(self,ignore_obstacles_var=False,*args,**kwargs):
         def reward_fn(env):
