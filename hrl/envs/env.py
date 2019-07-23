@@ -153,7 +153,7 @@ class Base(CarRacing):
         Return true if the tile_id tile is direction spaces from
         and intersection
 
-        direction = {1,0,-1}, going with the flow or agains it, -
+        direction = {1,0,-1}, going with the flow or agains it, 0
         means both directions
         '''
         intersection_tiles = self.get_close_intersections(
@@ -1011,6 +1011,7 @@ class NWOO_n2n(Base):
             #else:
                 #if env.obstacle_contacts['count_delay'].sum() > 0:
                     #done_by_obstacle = True
+            if self._is_outside(): self._reset_objectives()
             reward,full_reward,done = default_reward_callback(env)
             done = True if done_by_obstacle else done
 
@@ -1044,16 +1045,20 @@ class NWOO_n2n(Base):
 
     def _check_if_in_objective(self,reward,full_reward,done):
         current_nodes = list(self._current_nodes.keys())
-        if len(set(current_nodes).intersection(
-                self._neg_objectives + [self._objective])) > 0:
-            self._close_to_intersection_state = False
-            self._directional_state = None
-            self._objective = None
-            self._neg_objectives = []
+        in_objectives = len(set(current_nodes).intersection(
+                self._neg_objectives + [self._objective])) > 0
+        if in_objectives:
+            self._reset_objectives()
 
             # Clean visited tiles
             self.info['visited'] = False
         return reward,full_reward,done
+
+    def _reset_objectives(self):
+        self._close_to_intersection_state = False
+        self._directional_state = None
+        self._objective = None
+        self._neg_objectives = []
     
     def check_unvisited_tiles(self,reward,done):
         if (self.t % 5) <= 2/60:
@@ -1178,6 +1183,36 @@ class NWOO(High_level_env_extension,NWOO_n2n):
     
     def check_univisited_tiles(self,reward,done):
         return reward,done
+
+
+class NWOO_B(NWOO_n2n):
+    def __init__(self,reward_fn=None,*args,**kwargs):
+        def reward_fn_NWOO_B(env):
+            if self._is_outside(): self._reset_objectives()
+            reward = env.check_obstacles_touched()
+            full_reward = reward
+            env._update_obstacles_info()
+            done = False
+            current_nodes = list(env._current_nodes.keys())
+            if env._objective in current_nodes:
+                # Changing from close to not close
+                reward = reward + 100
+                full_reward = full_reward + 100
+
+            reward,full_reward,done = env._check_early_termination_NWO(reward,full_reward,done)
+            reward,full_reward,done = env._check_if_in_objective(reward,full_reward,done)
+
+            if self._steps_in_episode > 2000: done = True
+
+            return reward,full_reward,done
+
+        if reward_fn is None:
+            reward_fn = reward_fn_NWOO_B
+
+        super(NWOO_B,self).__init__(reward_fn=reward_fn,*args,**kwargs)
+
+    def check_obstacles_touched(self,obstacle_value=-100):
+        return super(NWOO_B,self).check_obstacles_touched(obstacle_value=obstacle_value)
 
 
 class NWO_n2n(NWOO_n2n):

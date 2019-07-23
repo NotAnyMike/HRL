@@ -197,3 +197,4 @@
 195,,,NWOO,,,,,,,,experiments/186_NWOO_v1.3_fixed_cont/weights_1806976.pkl,,,
 196,,,NWOO,,,,,,,,experiments/183_NWOO_v1.3_fixed/weights_963072.pkl,,,
 197,,,NWOO,,,,,,,,hrl/weights/NWOO/v1.1_exp166_weights_final.pkl,,,
+198,outside_experiments,Nav_new,Nav_n2n,0.0,900000.0,45000000.0,0.0,"{'allow_reverse': False, 'grayscale': 1, 'show_info_panel': False, 'verbose': 0, 'discretize_actions': 'hard', 'num_tracks': 2, 'num_lanes': 2, 'num_lanes_changes': 0, 'num_obstacles': 100, 'max_time_out': 2.0, 'frames_per_state': 4, 'max_step_reward': 1, 'reward_fn': <function NWOO_n2n.__init__.<locals>.reward_fn_NWOO at 0x7fcb9062e378>, 'random_obstacle_x_position': False, 'random_obstacle_shape': False, 'load_tracks_from': 'tracks', 'allow_outside': True}",4.0,New Nav n2n,,200.0,,0.99
