@@ -1185,14 +1185,17 @@ class NWOO(High_level_env_extension,NWOO_n2n):
         return reward,done
 
 
-class NWOO_B(NWOO_n2n):
+class NWOO_B_n2n(NWOO_n2n):
     def __init__(self,reward_fn=None,*args,**kwargs):
-        def reward_fn_NWOO_B(env):
+        def reward_fn_NWOO_B_n2n(env):
             if self._is_outside(): self._reset_objectives()
-            reward = env.check_obstacles_touched()
+            reward = 0
+            done = False
+            
+            reward,done = env.check_timeout(reward,done)
+
             full_reward = reward
             env._update_obstacles_info()
-            done = False
             current_nodes = list(env._current_nodes.keys())
             if env._objective in current_nodes:
                 # Changing from close to not close
@@ -1207,12 +1210,22 @@ class NWOO_B(NWOO_n2n):
             return reward,full_reward,done
 
         if reward_fn is None:
-            reward_fn = reward_fn_NWOO_B
+            reward_fn = reward_fn_NWOO_B_n2n
 
-        super(NWOO_B,self).__init__(reward_fn=reward_fn,*args,**kwargs)
+        super(NWOO_B_n2n,self).__init__(reward_fn=reward_fn,*args,**kwargs)
 
     def check_obstacles_touched(self,obstacle_value=-100):
-        return super(NWOO_B,self).check_obstacles_touched(obstacle_value=obstacle_value)
+        return super(NWOO_B_n2n,self).check_obstacles_touched(obstacle_value=obstacle_value)
+
+
+class NWOO_B(High_level_env_extension,NWOO_B_n2n):
+    def __init__(self,id="NWOO",high_level=True,*args,**kwargs):
+        self.actions = []
+        self.actions.append(Keep_lane_policy())
+        self.actions.append(X_policy())
+        self.actions.append(Y_policy())
+
+        super(NWOO_B,self).__init__(id=id,high_level=high_level,*args,**kwargs)
 
 
 class NWO_n2n(NWOO_n2n):
