@@ -1188,9 +1188,12 @@ class NWOO(High_level_env_extension,NWOO_n2n):
 class NWOO_B_n2n(NWOO_n2n):
     def __init__(self,reward_fn=None,*args,**kwargs):
         def reward_fn_NWOO_B_n2n(env):
-            if self._is_outside(): self._reset_objectives()
             reward = 0
             done = False
+
+            if self._is_outside(): 
+                self._reset_objectives()
+                done = True
             
             reward,done = env.check_timeout(reward,done)
 
@@ -1232,8 +1235,7 @@ class NWOO_C(High_level_env_extension,NWOO_B_n2n):
     def __init__(self,id="NWOO",high_level=True,*args,**kwargs):
         self.actions = []
         self.actions.append(Keep_lane_policy())
-        self.actions.append(Turn_policy())
-        self.actions.append(Take_center_policy())
+        self.actions.append(X_policy())
 
         super(NWOO_C,self).__init__(id=id,high_level=high_level,*args,**kwargs)
 
