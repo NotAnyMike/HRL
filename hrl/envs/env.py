@@ -100,7 +100,6 @@ class Base(CarRacing):
                 self._async_visualiser = not self._async_visualiser
                 while self.connection.poll():
                     self.connection.recv()
-                print(self._async_visualiser)
 
         super(Base,self)._key_press(k,mod)
 
