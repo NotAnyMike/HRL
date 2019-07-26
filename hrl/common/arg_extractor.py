@@ -117,7 +117,6 @@ def get_load_args():
 
     if 'policy' in args:
         if 'full_policy' in args:del args['full_path']
-        if 'folder' in args:     del args['folder']
         if 'experiment' in args: del args['experiment']
         if 'weights' in args:    del args['weights']
     elif "full_path" in args:

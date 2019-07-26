@@ -393,8 +393,8 @@ class Nav(HighPolicy):
         self.actions.append(Recovery_v2())
 
         if v==0.9:
-            w = "hrl/weights/Nav/v0.9_exp186_weights_4227696.pkl"
+            w = "hrl/weights/Nav/v0.9_exp185_weights_4227696.pkl"
         else:
-            w = "hrl/weights/Nav/v0.9_exp186_weights_4227696.pkl"
+            w = "hrl/weights/Nav/v0.9_exp185_weights_4227696.pkl"
 
         super(Nav,self).__init__(w,id=id,max_steps=max_steps)
