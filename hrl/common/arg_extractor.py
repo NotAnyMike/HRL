@@ -121,7 +121,6 @@ def get_load_args():
         if 'experiment' in args: del args['experiment']
         if 'weights' in args:    del args['weights']
     elif "full_path" in args:
-        if 'folder' in args:     del args['folder']
         if 'experiment' in args: del args['experiment']
         if 'weights' in args:    del args['weights']
     
