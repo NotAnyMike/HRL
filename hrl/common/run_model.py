@@ -62,7 +62,7 @@ def load_model(
                 'train_steps':n_steps,
                 'weights':weights_loc}
         id,tb_logger,logs_folder,experiment_csv,experiment_folder =\
-                create_experiment_folder(tag=tag,args=args)
+                create_experiment_folder(folder=folder,tag=tag,args=args)
         print("***** experiment is",experiment_folder)
 
     # Get env

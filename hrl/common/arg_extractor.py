@@ -88,7 +88,8 @@ def get_load_args():
     
     # To simplify loading weights
     parser.add_argument('--folder', '-f', type=str, 
-            help="The folder of the experiments, by default it is 'experiments'")
+            help="The folder of the experiments, by default it is 'experiments', \
+            it is also used to save the logs if -tb is passed")
     parser.add_argument('--experiment', '-e', type=str,
             help="The name of the folder of the experiment, the name of the \
             experiment, for example '2_base'")
