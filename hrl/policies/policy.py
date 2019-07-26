@@ -308,8 +308,16 @@ class NWOO(HighPolicy):
             self.actions.append(Keep_lane(v=1.0))
             self.actions.append(X(v=1.1))
             self.actions.append(Y(v=1.4))
+        elif v == 1.5:
+            """
+            this version is able to take center and uses X and Y equally, maybe not perfect
+            """
+            w = "hrl/weights/NWOO/v1.5_exp199_weights_5176512.pkl"
+            self.actions.append(Keep_lane())
+            self.actions.append(X())
+            self.actions.append(Y())
         else:
-            w = "hrl/weights/NWOO/v1.2_exp186_weights_1806976.pkl"
+            w = "hrl/weights/NWOO/v1.5_exp199_weights_5176512.pkl"
             self.actions.append(Keep_lane())
             self.actions.append(X())
             self.actions.append(Y())

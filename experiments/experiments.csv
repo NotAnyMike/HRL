@@ -202,3 +202,8 @@
 200,,,Nav_n2n,,,,,,,,hrl/weights/Nav_n2n/v1.0_exp105_weights_final.pkl,,,
 201,outside_experiments,NWOO_C,NWOO_C,0.0,120000.0,6000000.0,0.0,"{'allow_reverse': False, 'grayscale': 1, 'show_info_panel': False, 'verbose': 0, 'discretize_actions': 'hard', 'num_tracks': 2, 'num_lanes': 2, 'num_lanes_changes': 0, 'num_obstacles': 100, 'max_time_out': 2.0, 'frames_per_state': 4, 'max_step_reward': 1, 'reward_fn': <function NWOO_B_n2n.__init__.<locals>.reward_fn_NWOO_B_n2n at 0x7f2a64eb0d90>, 'random_obstacle_x_position': False, 'random_obstacle_shape': False, 'load_tracks_from': 'tracks', 'allow_outside': False}",4.0,NWOO_C,,300.0,,0.9
 202,outside_experiments,NWOO_C,NWOO_C,0.0,60000.0,3000000.0,0.0,"{'allow_reverse': False, 'grayscale': 1, 'show_info_panel': False, 'verbose': 0, 'discretize_actions': 'hard', 'num_tracks': 2, 'num_lanes': 2, 'num_lanes_changes': 0, 'num_obstacles': 100, 'max_time_out': 2.0, 'frames_per_state': 4, 'max_step_reward': 1, 'reward_fn': <function NWOO_B_n2n.__init__.<locals>.reward_fn_NWOO_B_n2n at 0x7f29202c4510>, 'random_obstacle_x_position': False, 'random_obstacle_shape': False, 'load_tracks_from': 'tracks', 'allow_outside': False}",4.0,NWOO_C,,300.0,,0.9
+203,,,NWOO_B,,,,,,,,outside_experiments/199_NWOO_B/weights_final.pkl,,,
+204,,,NWOO_B,,,,,,,,outside_experiments/199_NWOO_B/weights_5056128.pkl,,,
+205,,,NWOO_B,,,,,,,,outside_experiments/199_NWOO_B/weights_5176512.pkl,,,
+206,,,NWOO_B,,,,,,,,outside_experiments/199_NWOO_B/weights_5778432.pkl,,,
+207,,,NWOO_B,,,,,,,,outside_experiments/199_NWOO_B/weights_4694976.pkl,,,
