@@ -1020,6 +1020,9 @@ class NWOO_n2n(Base):
                 reward = reward + 100
                 full_reward = full_reward + 100
 
+            if self._steps_in_episode > 2000: 
+                done = True
+
             reward,full_reward,done = env._check_early_termination_NWO(reward,full_reward,done)
             reward,full_reward,done = env._check_if_in_objective(reward,full_reward,done)
             return reward,full_reward,done

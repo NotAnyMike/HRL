@@ -56,6 +56,7 @@ class Plotter():
         
         self.data = [1,2,7,3,7,3,8]
         self.active_nodes = set()
+        self.changed = False
         self.background = self.fig.canvas.copy_from_bbox(self.ax.bbox)
 
     def init_data(self):
@@ -91,7 +92,11 @@ class Plotter():
         Policy name is the ID name of the policies, e.g. Nav, TR or NWOO
         """
         id = list(self.pos.keys()).index(policy_name)
-        self.active_nodes.add(id)
+        if id not in self.active_nodes:
+            if policy_name in ['R','TL','TR','TC','KL','CL','CR','D','De']:
+                self.changed = True
+
+            self.active_nodes.add(id)
 
     def remove_active_policy(self,policy_name):
         """
@@ -116,39 +121,42 @@ class Plotter():
         pygame.display.update()
 
     def plot(self):
-        self.ax.clear()
-        self.fig.canvas.restore_region(self.background)
-        self.fig.canvas.blit(self.ax.bbox)
-        color = (255, 100, 0)
-        self.screen.fill((255, 255, 255))
-        #self.clock.tick(30)
+        if self.changed:
+            self.ax.clear()
+            self.fig.canvas.restore_region(self.background)
+            self.fig.canvas.blit(self.ax.bbox)
+            color = (255, 100, 0)
+            self.screen.fill((255, 255, 255))
+            #self.clock.tick(30)
 
-        color = copy(self.color)
-        for i in self.active_nodes:
-            color[i] = '#e86d6d'
+            color = copy(self.color)
+            for i in self.active_nodes:
+                color[i] = '#e86d6d'
 
-        # Custom the nodes:
-        nx.draw(self.G, self.pos, ax=self.ax, 
-                with_labels=True, 
-                node_color=color, 
-                node_size=1000, 
-                font_size=8, 
-                edge_color=self.df['value'], 
-                width=2.0, 
-                node_shape='s')
+            # Custom the nodes:
+            nx.draw(self.G, self.pos, ax=self.ax, 
+                    with_labels=True, 
+                    node_color=color, 
+                    node_size=1000, 
+                    font_size=8, 
+                    edge_color=self.df['value'], 
+                    width=2.0, 
+                    node_shape='s')
 
-        self.fig.tight_layout()
+            self.fig.tight_layout()
 
-        # draw the canvas, cache the renderer
-        self.canvas.draw()       
+            # draw the canvas, cache the renderer
+            self.canvas.draw()       
 
-        image = self.canvas.tostring_rgb()
+            image = self.canvas.tostring_rgb()
 
-        size = self.canvas.get_width_height()
+            size = self.canvas.get_width_height()
 
-        surf = pygame.image.fromstring(image, size, "RGB")
-        self.screen.blit(surf, (0,0))
-        pygame.display.flip() 
+            surf = pygame.image.fromstring(image, size, "RGB")
+            self.screen.blit(surf, (0,0))
+            pygame.display.flip() 
+
+            self.changed = False
 
 
 class PickleWrapper():
