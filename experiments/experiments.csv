@@ -209,3 +209,12 @@
 207,,,NWOO_B,,,,,,,,outside_experiments/199_NWOO_B/weights_4694976.pkl,,,
 208,,,Nav,,,,,,,,hrl/weights/Nav/v0.9_exp185_weights_4227696.pkl,,,
 209,outside_experiments,Nav_withnew_NWOO,Nav,0.0,60000.0,3000000.0,0.0,"{'allow_reverse': False, 'grayscale': 1, 'show_info_panel': False, 'verbose': 0, 'discretize_actions': 'hard', 'num_tracks': 2, 'num_lanes': 2, 'num_lanes_changes': 0, 'num_obstacles': 100, 'max_time_out': 2.0, 'frames_per_state': 4, 'max_step_reward': 1, 'reward_fn': <function NWOO_n2n.__init__.<locals>.reward_fn_NWOO at 0x7f00389a4c80>, 'random_obstacle_x_position': False, 'random_obstacle_shape': False, 'load_tracks_from': 'tracks', 'allow_outside': True}",4.0,Nav with new NWOO and with early weights of last Nav exp,outside_experiments/185_Nav_0.9_cont/weights_5435376.pkl,300.0,,0.99
+210,outside_experiments,Nav_withnew_NWOO_limited,Nav,0.0,60000.0,3000000.0,0.0,"{'allow_reverse': False, 'grayscale': 1, 'show_info_panel': False, 'verbose': 0, 'discretize_actions': 'hard', 'num_tracks': 2, 'num_lanes': 2, 'num_lanes_changes': 0, 'num_obstacles': 100, 'max_time_out': 2.0, 'frames_per_state': 4, 'max_step_reward': 1, 'reward_fn': <function NWOO_n2n.__init__.<locals>.reward_fn_NWOO at 0x7fa00c8f2b70>, 'random_obstacle_x_position': False, 'random_obstacle_shape': False, 'load_tracks_from': 'tracks', 'allow_outside': True}",4.0,Nav with new NWOO and with early weights of last Nav exp,outside_experiments/185_Nav_0.9_cont/weights_5435376.pkl,300.0,,0.9
+211,,,Nav,,,,,,,,outside_experiments/209_Nav_withnew_NWOO/weights_final.pkl,,,
+212,,,Nav,,,,,,,,outside_experiments/209_Nav_withnew_NWOO/weights_364800.pkl,,,
+213,,,Nav,,,,,,,,outside_experiments/209_Nav_withnew_NWOO/weights_486400.pkl,,,
+214,,,Nav,,,,,,,,outside_experiments/210_Nav_withnew_NWOO_limited/weights_final.pkl,,,
+215,,,Nav,,,,,,,,outside_experiments/210_Nav_withnew_NWOO_limited/weights_729600.pkl,,,
+216,,,Nav,,,,,,,,outside_experiments/210_Nav_withnew_NWOO_limited/weights_364800.pkl,,,
+217,,,Nav_n2n,,,,,,,,outside_experiments/198_Nav_new/weights_34201824.pkl,,,
+218,,,Nav,,,,,,,,hrl/weights/Nav/v0.9_exp185_weights_4227696.pkl,,,
