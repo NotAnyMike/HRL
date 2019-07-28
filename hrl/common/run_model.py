@@ -60,7 +60,10 @@ def load_model(
     if tensorboard:
         args = {'env':copy(env),
                 'train_steps':n_steps,
-                'weights':weights_loc}
+                'weights':weights_loc,
+                'perf':True,
+                'tag':tag,
+                'n_ep': n_ep}
         id,tb_logger,logs_folder,experiment_csv,experiment_folder =\
                 create_experiment_folder(folder=folder,tag=tag,args=args)
         print("***** experiment is",experiment_folder)
