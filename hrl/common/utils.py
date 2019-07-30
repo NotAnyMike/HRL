@@ -2,6 +2,7 @@ from tensorboard_logger import Logger
 import os
 import pandas as pd
 import shutil
+from pdb import set_trace
 
 def create_experiment_folder(folder='experiments',tag=None,args=None):
     if folder is None: folder = 'experiments'
@@ -26,7 +27,8 @@ def create_experiment_folder(folder='experiments',tag=None,args=None):
         df = pd.DataFrame(columns=args.keys())
         df.to_csv(experiment_csv)
 
-    df = df.append(args, ignore_index=True)
+    #df = df.append(args, ignore_index=True)
+    df.loc[df.index.max()+1] = pd.Series(args)
     df.to_csv(experiment_csv)
     id = df.index[-1]
 
