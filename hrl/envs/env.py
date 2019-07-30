@@ -30,49 +30,6 @@ from hrl.policies.policy import Recovery_v2 as Recovery_v2_policy
 from hrl.common.visualiser import PickleWrapper, Plotter, worker
 
 
-class Original(CarRacing):
-    def __init__(self, 
-            reward_fn=original_reward_callback,
-            max_time_out=2.0,
-            max_step_reward=1.0,
-            auto_render=False,
-            high_level=False,
-            id='Nav',
-            #load_tracks_from="tracks",
-            tensorboard_logger=None,
-            *args,
-            **kwargs
-            ):
-        super(Original,self).__init__(
-                allow_reverse=False, 
-                grayscale=1,
-                show_info_panel=False,
-                verbose=0,
-                discretize_actions="hard",
-                num_tracks=1,
-                num_lanes=2,
-                num_lanes_changes=0,
-                num_obstacles=0,
-                max_time_out=max_time_out,
-                frames_per_state=4,
-                max_step_reward=max_step_reward,
-                reward_fn=reward_fn,
-                random_obstacle_x_position=False,
-                random_obstacle_shape=False,
-                #load_tracks_from=load_tracks_from,
-                *args,
-                **kwargs
-                )
-        self.high_level = high_level
-        self.visualiser_process = None
-        self.ID = id
-        self.active_policies = set([self.ID])
-        self.stats = {}
-        self._async_visualiser = True
-        self.tb_logger = tensorboard_logger
-        self.total_steps = 0
-    
-
 class Base(CarRacing):
     def __init__(self, 
             reward_fn=default_reward_callback,
@@ -83,6 +40,9 @@ class Base(CarRacing):
             id='Nav',
             load_tracks_from="tracks",
             tensorboard_logger=None,
+            num_tracks=2,
+            num_lanes=2,
+            num_obstacles=100,
             *args,
             **kwargs
             ):
@@ -92,10 +52,10 @@ class Base(CarRacing):
                 show_info_panel=False,
                 verbose=0,
                 discretize_actions="hard",
-                num_tracks=2,
-                num_lanes=2,
+                num_tracks=num_tracks,
+                num_lanes=num_lanes,
                 num_lanes_changes=0,
-                num_obstacles=100,
+                num_obstacles=num_obstacles,
                 max_time_out=max_time_out,
                 frames_per_state=4,
                 max_step_reward=max_step_reward,
@@ -294,6 +254,26 @@ class Base(CarRacing):
                 self.tb_logger.log_value('episode/episode_reward',self.reward, self.total_steps)
         return state,step_reward,done,info
 
+
+class Original(Base):
+    def __init__(self, 
+            reward_fn=original_reward_callback,
+            load_tracks_from=None,
+            tensorboard_logger=None,
+            *args,
+            **kwargs
+            ):
+        super(Original,self).__init__(
+                num_tracks=1,
+                num_lanes=2,
+                num_obstacles=0,
+                tensorboard_logger=tensorboard_logger,
+                reward_fn=reward_fn,
+                load_tracks_from=load_tracks_from,
+                *args,
+                **kwargs
+                )
+    
 
 class High_level_env_extension():
     def __init__(self,high_level=True,*args,**kwargs):
