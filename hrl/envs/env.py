@@ -3,7 +3,7 @@ import multiprocessing as mp
 import sys
 
 from gym.envs.box2d import CarRacing
-from gym.envs.box2d.car_racing import play, default_reward_callback, TILE_NAME, SOFT_NEG_REWARD, HARD_NEG_REWARD, WINDOW_W, WINDOW_H, TRACK_WIDTH
+from gym.envs.box2d.car_racing import play, default_reward_callback, original_reward_callback, TILE_NAME, SOFT_NEG_REWARD, HARD_NEG_REWARD, WINDOW_W, WINDOW_H, TRACK_WIDTH
 from gym import spaces
 from pdb import set_trace
 from pyglet import gl
@@ -28,6 +28,50 @@ from hrl.policies.policy import NWO as NWO_policy
 from hrl.policies.policy import Recovery as Recovery_policy
 from hrl.policies.policy import Recovery_v2 as Recovery_v2_policy
 from hrl.common.visualiser import PickleWrapper, Plotter, worker
+
+
+class Original(CarRacing):
+    def __init__(self, 
+            reward_fn=original_reward_callback,
+            max_time_out=2.0,
+            max_step_reward=1.0,
+            auto_render=False,
+            high_level=False,
+            id='Nav',
+            #load_tracks_from="tracks",
+            tensorboard_logger=None,
+            *args,
+            **kwargs
+            ):
+        super(Original,self).__init__(
+                allow_reverse=False, 
+                grayscale=1,
+                show_info_panel=False,
+                verbose=0,
+                discretize_actions="hard",
+                num_tracks=1,
+                num_lanes=2,
+                num_lanes_changes=0,
+                num_obstacles=0,
+                max_time_out=max_time_out,
+                frames_per_state=4,
+                max_step_reward=max_step_reward,
+                reward_fn=reward_fn,
+                random_obstacle_x_position=False,
+                random_obstacle_shape=False,
+                #load_tracks_from=load_tracks_from,
+                *args,
+                **kwargs
+                )
+        self.high_level = high_level
+        self.visualiser_process = None
+        self.ID = id
+        self.active_policies = set([self.ID])
+        self.stats = {}
+        self._async_visualiser = True
+        self.tb_logger = tensorboard_logger
+        self.total_steps = 0
+    
 
 class Base(CarRacing):
     def __init__(self, 
