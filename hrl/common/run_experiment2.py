@@ -46,7 +46,7 @@ def run_experiment(
     env = getattr(environments, env)
     envs = DummyVecEnv([lambda : env() for i in range(env_num)])
 
-    args['env_config'] = str(env.env_method("get_org_config")[0])
+    args['env_config'] = ""#str(env.get_org_config())
     
     # Check if folder exists and if is a valid name
     if not not_save:
@@ -79,7 +79,8 @@ def run_experiment(
                 )
 
     if 'interrupting' in env_name:
-        env.set_interrupting_params(ppo=model)
+        for env in envs.envs:
+            env.set_interrupting_params(ppo=model)
 
     # set bar
     callback = Callback(
