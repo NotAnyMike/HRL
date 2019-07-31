@@ -385,6 +385,32 @@ class NWO(HighPolicy):
         super(NWO,self).__init__(w,id=id,max_steps=max_steps)
 
 
+class Interrupting_interface():
+    def set_interrupting_params(self,nid,ppo):
+        self.nid = nid
+        self.ppo = ppo
+        self.max_steps = 1000
+
+    def _done(self,env,allow_outside=False):
+        done = super(Interrupting_interface,self)._done(env,allow_outside=allow_outside)
+        if not done:
+            if self.ppo.predict(env.state)[0] != self.nid:
+                done = True
+        return done
+
+
+class NWO_interrupting(Interrupting_interface,NWO):
+    pass
+
+
+class NWOO_interrupting(Interrupting_interface,NWOO):
+    pass
+
+
+class Recovery_v2_interrupting(Interrupting_interface,Recovery_v2):
+    pass
+    
+
 class Nav(HighPolicy):
     def __init__(self,v=None,id="Nav",max_steps=0):
         self.actions = []

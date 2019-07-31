@@ -24,9 +24,12 @@ from hrl.policies.policy import Change_lane as Change_lane_policy
 from hrl.policies.policy import Recovery_delayed as Recovery_delayed_policy
 from hrl.policies.policy import Recovery_direct as Recovery_direct_policy
 from hrl.policies.policy import NWOO as NWOO_policy
+from hrl.policies.policy import NWOO_interrupting as NWOO_interrupting_policy
 from hrl.policies.policy import NWO as NWO_policy
+from hrl.policies.policy import NWO_interrupting as NWO_interrupting_policy
 from hrl.policies.policy import Recovery as Recovery_policy
 from hrl.policies.policy import Recovery_v2 as Recovery_v2_policy
+from hrl.policies.policy import Recovery_v2_interrupting as Recovery_v2_interrupting_policy
 from hrl.common.visualiser import PickleWrapper, Plotter, worker
 
 
@@ -294,6 +297,25 @@ class High_level_env_extension():
             state, reward, done, info = self.actions[action](self,self.state)
 
         return state, reward, done, info
+
+
+class Interrupting_interface():
+    def set_interrupting_params(self,ppo):
+        for nid,pol in enumerate(self.actions):
+            pol.set_interrupting_params(nid=nid,ppo=ppo)
+
+    def reset(self):
+        self.option_steps = 0
+        return super(Interrupting_interface,self).reset()
+
+    def raw_step(self,action):
+        self.option_steps += 1
+        return super(Interrupting_interface,self).raw_step(action)
+
+    def step(self,action):
+        #print(self.option_steps)
+        self.option_steps = 0
+        return super(Interrupting_interface,self).step(action)
 
 
 # Deprecated
@@ -1610,6 +1632,20 @@ class Nav(High_level_env_extension,Nav_n2n):
         self.actions.append(Recovery_v2_policy())
 
         super(Nav,self).__init__(
+                id=id, 
+                ignore_obstacles_var=ignore_obstacles_var,
+                allow_outside=allow_outside, 
+                *args, **kwargs)
+
+
+class Nav_interrupting(Interrupting_interface,High_level_env_extension,Nav_n2n):
+    def __init__(self, id='Nav', ignore_obstacles_var=False, allow_outside=True, *args, **kwargs):
+        self.actions = []
+        self.actions.append(NWOO_interrupting_policy())
+        self.actions.append(NWO_interrupting_policy())
+        self.actions.append(Recovery_v2_interrupting_policy())
+
+        super(Nav_interrupting,self).__init__(
                 id=id, 
                 ignore_obstacles_var=ignore_obstacles_var,
                 allow_outside=allow_outside, 

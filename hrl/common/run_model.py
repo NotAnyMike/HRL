@@ -76,6 +76,10 @@ def load_model(
     model = PPO2.load(weights_loc)
     model.set_env(env)
 
+    #set_trace()
+    if 'interrupting' in str(type(env.envs[0])): # TODO use type of 
+        env.envs[0].set_interrupting_params(ppo=model)
+
     obs = env.reset()
     done_count = 0
     reward = 0
