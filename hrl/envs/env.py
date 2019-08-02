@@ -392,7 +392,7 @@ class Turn_side(Base):
         self._reward_fn_side = reward_fn
         self.tracks_df = self.tracks_df[(self.tracks_df['t']) | (self.tracks_df['x'])]
 
-        raise DeprecationWarning("Use v2")
+        #raise DeprecationWarning("Use v2")
 
     def _choice_random_track_from_file(self):
         if np.random.uniform() >= 0.5:
