@@ -600,7 +600,7 @@ class Turn(Turn_side):
         self.actions['left']  = Left_policy()
         self.actions['right'] = Right_policy()
 
-        raise DeprecationWarning("Use v2")
+        #raise DeprecationWarning("Use v2")
 
     def _set_config(self, **kwargs):
         super(Turn, self)._set_config(**kwargs)
