@@ -1395,10 +1395,12 @@ class Turn_v2_n2n(NWOO_n2n):
 
 
 class Turn_v2(High_level_env_extension,Turn_v2_n2n):
-    def __init__(self,*args,**kwargs):
+    def __init__(self,max_steps=4,*args,**kwargs):
         self.actions = []
-        self.actions.append(Left_policy())
-        self.actions.append(Right_policy())
+        self.actions.append(Left_policy(max_steps=max_steps))
+        self.actions.append(Right_policy(max_steps=max_steps))
+
+        print("max_steps",max_steps)
 
         super(Turn_v2,self).__init__(*args,**kwargs)
 

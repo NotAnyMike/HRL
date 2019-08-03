@@ -31,6 +31,8 @@ def get_train_args():
             help="The number of steps to use in each training step")
     parser.add_argument('--gamma', type=float,
             help="The discount factor to use in training")
+    parser.add_argument('--max_steps', type=int,
+            help="The value of max_steps for the environment options - only works for Turn_v2")
     parser.add_argument('--save_interval', type=int,
             help="The model will be saved every number of steps  \
                     specified here, default: 10000")
