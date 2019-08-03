@@ -422,7 +422,9 @@ class Nav(HighPolicy):
             w = "hrl/weights/Nav/v0.9_exp185_weights_4227696.pkl"
         if v==1.0:
             w = "hrl/weights/Nav/v1.0_exp209_weights_486400.pkl"
+        if v==1.1:
+            w = "hrl/weights/Nav/v1.1_exp233_weights_final.pkl"
         else:
-            w = "hrl/weights/Nav/v1.0_exp209_weights_486400.pkl"
+            w = "hrl/weights/Nav/v1.1_exp233_weights_final.pkl"
 
         super(Nav,self).__init__(w,id=id,max_steps=max_steps)
