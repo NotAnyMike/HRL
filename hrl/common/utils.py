@@ -48,7 +48,7 @@ def create_experiment_folder(folder='experiments',tag=None,args=None):
 
 def remove_experiment(experiment_folder, folder, experiment_csv, id):
     df = pd.read_csv(experiment_csv, index_col=0)
-    df.drop(df.index[id],inplace=True)
+    df.drop(id,inplace=True)
     df.to_csv(experiment_csv)
 
     os.rename(experiment_folder, folder + '/to_delete/')
