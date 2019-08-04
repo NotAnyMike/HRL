@@ -32,6 +32,7 @@ def run_experiment(
         weights=None,
         n_steps=200,
         gamma=0.99,
+        max_steps=None,
         ):
     
     if weights is not None and not os.path.isfile(weights):
@@ -42,7 +43,12 @@ def run_experiment(
 
     # Get env
     env = getattr(environments, env)
-    env = SubprocVecEnv([lambda : env() for i in range(env_num)])
+
+    # Generate environments
+    if max_steps is not None:
+        env = SubprocVecEnv([lambda : env(max_steps=max_steps) for i in range(env_num)])
+    else:
+        env = SubprocVecEnv([lambda : env() for i in range(env_num)])
 
     args['env_config'] = str(env.env_method("get_org_config")[0])
     
