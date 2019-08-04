@@ -1402,7 +1402,7 @@ class Turn_v2(High_level_env_extension,Turn_v2_n2n):
 
         print("max_steps",max_steps)
 
-        super(Turn_v2,self).__init__(*args,**kwargs)
+        super(Turn_v2,self).__init__(max_steps=max_steps,*args,**kwargs)
 
 
 class X_v2_n2n(Turn_v2_n2n):
