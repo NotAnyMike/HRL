@@ -1676,6 +1676,63 @@ class Y_v2(Turn_v2):
     pass
 
 
+class Nav_perf_intersections_n2n(Nav_n2n):
+    def __init__(self,reward_fn=None,num_obstacles=0,*args,**kwargs):
+        def reward_fn_Nav_intersections(env):
+            reward = 0
+            full_reward = 0
+            if env._ignore_obstacles_var is True:
+                env._ignore_obstacles()
+            #else:
+                #if env.obstacle_contacts['count_delay'].sum() > 0:
+                    #done_by_obstacle = True
+            if self._is_outside(): 
+                if env._objective is not None:
+                    full_reward = 1
+
+                self._reset_objectives()
+            _,_,done = default_reward_callback(env)
+
+            current_nodes = list(env._current_nodes.keys())
+            if env._objective in current_nodes:
+                # Changing from close to not close
+                reward = 1
+                full_reward = 1
+            for obj in env._neg_objectives:
+                if obj in current_nodes:
+                    full_reward = 1
+
+            if self._steps_in_episode > 2000: 
+                done = True
+
+            _,_,done = env._check_early_termination_NWO(reward,full_reward,done)
+            _,_,done = env._check_if_in_objective(reward,full_reward,done)
+            return reward,full_reward,done
+        
+        if reward_fn is None:
+            reward_fn = reward_fn_Nav_intersections
+
+        super(Nav_perf_intersections_n2n,self).__init__(
+                num_obstacles=num_obstacles,
+                reward_fn=reward_fn,
+                *args,**kwargs)
+
+    def _get_options_for_directional(self,intersection):
+        if intersection['straight'] is not None and np.random.uniform() > 0.6:
+            return ['straight']
+        else:
+            return [key for key,val in intersection.items() if val is not None]
+
+
+class Nav_perf_intersections(High_level_env_extension,Nav_perf_intersections_n2n):
+    def __init__(self,*args, **kwargs):
+        self.actions = []
+        self.actions.append(NWOO_policy())
+        self.actions.append(NWO_policy())
+        self.actions.append(Recovery_v2_policy())
+
+        super(Nav_perf_intersections,self).__init__(*args, **kwargs)
+
 def play_high_level(env):
     """
     Extension of play function in car_racing for high level policies
