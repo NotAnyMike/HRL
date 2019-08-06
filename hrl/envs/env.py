@@ -166,11 +166,12 @@ class Base(CarRacing):
                 tile_id=tile_id,spaces=spaces,direction=direction)
         return len(intersection_tiles) > 0
 
-    def get_close_intersections(self,tile_id,spaces=8,direction=1):
+    def get_close_tiles(self,tile_id,spaces=8,direction=1):
         '''
         Returns a set of the index of the tiles that are space close in
         the direction direction of tile_id
         '''
+        candidates = set()
         if spaces > 0 and direction in [1,0,-1]:
             track_id = self.info[tile_id]['track']
             track_len = len(self.tracks[track_id])
@@ -197,13 +198,22 @@ class Base(CarRacing):
                         stop_0 = True
 
             candidates = set(candidates)
-            positive_candidates = candidates.intersection(
-                    np.where(self.info['intersection_id'] != -1)[0])
-
-            return positive_candidates
         else:
             raise ValueError("Check the attributes used in \
                     _is_close_to_intersection")
+        return candidates
+
+    def get_close_intersections(self,tile_id,spaces=8,direction=1):
+        '''
+        Returns a set of the index of the tiles that are space close in
+        the direction direction of tile_id
+
+        direction in [1,0,-1], forward, both, backward
+        '''
+        candidates = self.get_close_tiles(tile_id=tile_id,spaces=spaces,direction=direction)
+        positive_candidates = candidates.intersection(
+                np.where(self.info['intersection_id'] != -1)[0])
+        return positive_candidates
 
     def _render_center_arrow(self):
         # Arrow
@@ -1732,6 +1742,70 @@ class Nav_perf_intersections(High_level_env_extension,Nav_perf_intersections_n2n
         self.actions.append(Recovery_v2_policy())
 
         super(Nav_perf_intersections,self).__init__(*args, **kwargs)
+
+
+class Nav_perf_obstacles_n2n(Nav_n2n):
+    def __init__(self,reward_fn=None,*args,**kwargs):
+        def reward_fn_Nav_obstacles(env):
+            reward = 0
+            full_reward = 0
+
+            if self._is_outside(): 
+                self._reset_objectives()
+                if len(env._set_of_near_obstacles)>0:
+                    reward = 1
+                env._set_of_near_obstacles = set()
+            else:
+                tiles = env._current_nodes.keys()
+                if len(tiles) > 0: 
+                    tile_id = list(tiles)[0]
+                    flow = env._current_nodes[tile_id][0] if 0 in env._current_nodes[tile_id].keys() else env._current_nodes[tile_id][1]
+                    close_tiles = env.get_close_tiles(tile_id,spaces=6,direction=flow)
+                    if len(close_tiles) > 0:
+                        for tile in close_tiles:
+                            if tile not in env._set_of_near_obstacles:
+                                if self.info[tile]['obstacles']:
+                                    self._set_of_near_obstacles.add(tile)
+                                    full_reward = 1
+                    else:
+                        env._set_of_near_obstacles = set()
+                else:
+                    env._set_of_near_obstacles = set()
+
+            reward += env.check_obstacles_touched(1)
+            _,_,done = default_reward_callback(env)
+
+            if self._steps_in_episode > 2000: 
+                done = True
+
+            _,_,done = env._check_early_termination_NWO(reward,full_reward,done)
+            _,_,done = env._check_if_in_objective(reward,full_reward,done)
+            return reward,full_reward,done
+        
+        if reward_fn is None:
+            reward_fn = reward_fn_Nav_obstacles
+
+        super(Nav_perf_obstacles_n2n,self).__init__(
+                reward_fn=reward_fn,
+                *args,**kwargs)
+        self._set_of_near_obstacles = set()
+
+    def _get_options_for_directional(self,intersection):
+        if intersection['straight'] is not None and np.random.uniform() > 0.6:
+            return ['straight']
+        else:
+            return [key for key,val in intersection.items() if val is not None]
+
+
+class Nav_perf_obstacles(High_level_env_extension,Nav_perf_obstacles_n2n):
+    def __init__(self,*args, **kwargs):
+        self.actions = []
+        self.actions.append(NWOO_policy())
+        self.actions.append(NWO_policy())
+        self.actions.append(Recovery_v2_policy())
+
+        super(Nav_perf_obstacles,self).__init__(*args, **kwargs)
+
 
 def play_high_level(env):
     """
