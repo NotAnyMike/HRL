@@ -246,3 +246,5 @@
 252,,Nav_H_perf_obstacles,Nav_perf_obstacles,,,,,,,,,hrl/weights/Nav/v1.1_exp233_weights_final.pkl,,,1.0,100.0,
 253,,Nav_perf_intersections,Nav_perf_intersections,,,,,,,,,hrl/weights/Nav/v1.1_exp233_weights_final.pkl,,,1.0,100.0,
 254,,Nav_n2n_perf_intersections,Nav_perf_intersections_n2n,,,,,,,,,hrl/weights/Nav_n2n/v1.1_exp198_weights_final.pkl,,,1.0,100.0,
+255,,NavH_perf,Nav,,,,,,,,,hrl/weights/Nav/v1.1_exp233_weights_final.pkl,,,1.0,100.0,
+256,,NavN2N_perf,Nav_n2n,,,,,,,,,hrl/weights/Nav_n2n/v1.1_exp198_weights_final.pkl,,,1.0,100.0,
