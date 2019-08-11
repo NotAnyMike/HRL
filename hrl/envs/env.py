@@ -46,11 +46,12 @@ class Base(CarRacing):
             num_tracks=2,
             num_lanes=2,
             num_obstacles=100,
+            allow_reverse=False, 
             *args,
             **kwargs
             ):
         super(Base,self).__init__(
-                allow_reverse=False, 
+                allow_reverse=allow_reverse,
                 grayscale=1,
                 show_info_panel=False,
                 verbose=0,
@@ -103,6 +104,12 @@ class Base(CarRacing):
                     del self.connection
                     del self.ctx
                     self.visualiser_process = None
+            elif k == key.D:
+                set_trace()
+            elif k==key.R:
+                self.reset()
+            elif k==key.Z:
+                self.change_zoom()
             elif k == key.A: # A from async
                 self._async_visualiser = not self._async_visualiser
                 while self.connection.poll():
@@ -1805,6 +1812,24 @@ class Nav_perf_obstacles(High_level_env_extension,Nav_perf_obstacles_n2n):
         self.actions.append(Recovery_v2_policy())
 
         super(Nav_perf_obstacles,self).__init__(*args, **kwargs)
+
+
+class Nav_contrafactual(Nav):
+    def __init__(self,num_tracks=0, num_obstacles=1, load_tracks_from=None,*args,**kwargs):
+        super(Nav_contrafactual,self).__init__(
+                num_tracks=num_tracks,
+                num_obstacles=num_obstacles,
+                load_tracks_from=load_tracks_from,
+                *args,**kwargs)
+
+    def _position_car_on_reset(self):
+        self.place_agent(self._get_position_inside_lane(0,0)[1:])
+
+    def _get_possible_candidates_for_obstacles(self):
+        if self.num_obstacles == 1:
+            return [15]
+        else: 
+            return list(range(len(self.track)))
 
 
 def play_high_level(env):
