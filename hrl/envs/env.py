@@ -283,12 +283,20 @@ class Original(Base):
             *args,
             **kwargs
             ):
+
+        def sota_reward_fn(env):
+            reward,full_reward,done = original_reward_callback(env)
+            if env._is_outside():
+                reward -= 0.5
+                full_reward -= 0.5
+            return reward,full_reward,done
+
         super(Original,self).__init__(
                 num_tracks=1,
                 num_lanes=2,
                 num_obstacles=0,
                 tensorboard_logger=tensorboard_logger,
-                reward_fn=reward_fn,
+                reward_fn=sota_reward_fn,
                 load_tracks_from=load_tracks_from,
                 *args,
                 **kwargs
@@ -833,7 +841,6 @@ class Take_center(Base):
 
     def _render_additional_objects(self):
         self._render_center_arrow()
-
 
 # Deprecated
 class X(Turn,Take_center):
