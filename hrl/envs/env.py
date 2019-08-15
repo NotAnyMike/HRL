@@ -287,8 +287,8 @@ class Original(Base):
         def sota_reward_fn(env):
             reward,full_reward,done = original_reward_callback(env)
             if env._is_outside():
-                reward -= 4
-                full_reward -= 4
+                reward -= 100
+                full_reward -= 100
             return reward,full_reward,done
 
         super(Original,self).__init__(

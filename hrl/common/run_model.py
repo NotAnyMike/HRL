@@ -12,7 +12,6 @@ import tensorboard_logger
 
 from hrl.common.arg_extractor import get_load_args
 from hrl.common.utils import create_experiment_folder,remove_experiment
-from hrl.envs import env as environments
 
 def load_model(
         experiment=None,
@@ -69,8 +68,13 @@ def load_model(
         print("***** experiment is",experiment_folder)
 
     # Get env
-    env = getattr(environments, env)(tensorboard_logger=tb_logger)
-    if env.high_level and not no_render: env.auto_render = True
+    if env == "CarRacing_v0":
+        from gym.envs.box2d import CarRacing
+        env = CarRacing()
+    else:
+        from hrl.envs import env as environments
+        env = getattr(environments, env)(tensorboard_logger=tb_logger)
+        if env.high_level and not no_render: env.auto_render = True
     env = DummyVecEnv([lambda: env])
 
     model = PPO2.load(weights_loc)
