@@ -280,6 +280,7 @@ class Original(Base):
             reward_fn=original_reward_callback,
             load_tracks_from=None,
             tensorboard_logger=None,
+            max_time_out=0.0,
             *args,
             **kwargs
             ):
@@ -287,13 +288,14 @@ class Original(Base):
         def sota_reward_fn(env):
             reward,full_reward,done = original_reward_callback(env)
             if env._is_outside():
-                reward -= 100
-                full_reward -= 100
+                reward -= 10
+                full_reward -= 10
             return reward,full_reward,done
 
         super(Original,self).__init__(
                 num_tracks=1,
                 num_lanes=2,
+                max_time_out=max_time_out,
                 num_obstacles=0,
                 tensorboard_logger=tensorboard_logger,
                 reward_fn=sota_reward_fn,
@@ -1837,6 +1839,15 @@ class Nav_contrafactual(Nav):
             return [15]
         else: 
             return list(range(len(self.track)))
+
+
+class Nav_video(Nav):
+    def _get_options_for_directional(self,intersection):
+        if intersection['straight'] is not None and np.random.uniform() > 0.6:
+            return ['straight']
+        else:
+            return [key for key,val in intersection.items() if val is not None]
+
 
 
 def play_high_level(env):
