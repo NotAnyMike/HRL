@@ -280,16 +280,37 @@ class Original(Base):
             reward_fn=original_reward_callback,
             load_tracks_from=None,
             tensorboard_logger=None,
-            max_time_out=0.0,
+            max_time_out=5.0,
             *args,
             **kwargs
             ):
 
         def sota_reward_fn(env):
+            left = env.info['count_left_delay'] > 0
+            right = env.info['count_right_delay'] > 0
+            visited = env.info['visited'] == True
+            
+            skipped = 0
+            max_tile_touched = np.where(visited)[0]
+            if len(max_tile_touched) > 0:
+                max_tile_touched = max_tile_touched.max()
+
+                min_tile_touching = np.where((left|right) & (visited==False))[0]
+                if len(min_tile_touching) > 0:
+                    min_tile_touching = min_tile_touching.min()
+
+                    if (min_tile_touching-1)%len(self.track) - max_tile_touched > 0:
+                        skipped = (min_tile_touching-1)%len(self.track) - max_tile_touched
+
+                        env.info['visited'][:min_tile_touching] = True
+
             reward,full_reward,done = original_reward_callback(env)
-            if env._is_outside():
-                reward -= 10
-                full_reward -= 10
+            reward -= skipped
+            full_reward -= skipped
+
+            if skipped != 0:
+                env.info['visited'][:min_tile_touching] = True
+
             return reward,full_reward,done
 
         super(Original,self).__init__(
@@ -303,6 +324,9 @@ class Original(Base):
                 *args,
                 **kwargs
                 )
+
+    def _position_car_on_reset(self):
+        self.place_agent(self.track[0][1][1:])
     
 
 class High_level_env_extension():
