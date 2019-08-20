@@ -310,6 +310,7 @@ class Original(Base):
 
             if skipped != 0:
                 env.info['visited'][:min_tile_touching] = True
+                done = True
 
             return reward,full_reward,done
 
