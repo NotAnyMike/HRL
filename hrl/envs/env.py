@@ -47,6 +47,7 @@ class Base(CarRacing):
             num_lanes=2,
             num_obstacles=100,
             allow_reverse=False, 
+            discretize_actions="hard",
             *args,
             **kwargs
             ):
@@ -55,7 +56,7 @@ class Base(CarRacing):
                 grayscale=1,
                 show_info_panel=False,
                 verbose=0,
-                discretize_actions="hard",
+                discretize_actions=discretize_actions,
                 num_tracks=num_tracks,
                 num_lanes=num_lanes,
                 num_lanes_changes=0,
@@ -281,6 +282,7 @@ class Original(Base):
             load_tracks_from=None,
             tensorboard_logger=None,
             max_time_out=5.0,
+            discretize_actions=None,
             *args,
             **kwargs
             ):
@@ -322,6 +324,7 @@ class Original(Base):
                 tensorboard_logger=tensorboard_logger,
                 reward_fn=sota_reward_fn,
                 load_tracks_from=load_tracks_from,
+                discretize_actions=discretize_actions,
                 *args,
                 **kwargs
                 )
@@ -1932,7 +1935,10 @@ def play_high_level(env):
 
 if __name__=='__main__':
     args = get_env_args()
-    env = getattr(environments, args.env)()
+    if args.env == "CarRacing_v0":
+        env = CarRacing()
+    else:
+        env = getattr(environments, args.env)()
     if env.high_level: 
         print("HIGH LEVEL")
         env.auto_render = True
