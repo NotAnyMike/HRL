@@ -304,21 +304,21 @@ class Original(Base):
                     if (min_tile_touching-1)%len(self.track) - max_tile_touched > 0:
                         skipped = (min_tile_touching-1)%len(self.track) - max_tile_touched
 
-                        env.info['visited'][:min_tile_touching] = True
+                        #env.info['visited'][:min_tile_touching] = True
 
             reward,full_reward,done = original_reward_callback(env)
             reward -= skipped
             full_reward -= skipped
 
-            if skipped != 0:
-                env.info['visited'][:min_tile_touching] = True
-                done = True
+            #if skipped != 0:
+                #env.info['visited'][:min_tile_touching] = True
+                #done = True
 
             return reward,full_reward,done
 
         super(Original,self).__init__(
                 num_tracks=1,
-                num_lanes=2,
+                num_lanes=1,
                 max_time_out=max_time_out,
                 num_obstacles=0,
                 tensorboard_logger=tensorboard_logger,
