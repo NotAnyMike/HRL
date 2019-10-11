@@ -28,9 +28,9 @@ def create_experiment_folder(folder='experiments',tag=None,args=None):
         df.to_csv(experiment_csv)
 
     #df = df.append(args, ignore_index=True)
+    id = 0 if len(df.index)==0 or pd.isna(df.index[-1]) else df.index.max()+1
     df.loc[df.index.max()+1] = pd.Series(args)
     df.to_csv(experiment_csv)
-    id = df.index[-1]
 
     # Creating folder for experiment
     if tag is None: 

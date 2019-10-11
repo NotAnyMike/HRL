@@ -282,7 +282,7 @@ class Original(Base):
             load_tracks_from=None,
             tensorboard_logger=None,
             max_time_out=5.0,
-            discretize_actions=None,
+            discretize_actions='hard',
             *args,
             **kwargs
             ):
@@ -871,6 +871,7 @@ class Take_center(Base):
 
     def _render_additional_objects(self):
         self._render_center_arrow()
+
 
 # Deprecated
 class X(Turn,Take_center):
