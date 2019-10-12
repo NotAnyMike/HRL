@@ -4,15 +4,42 @@ This repo replicates this hierarchy for a theoretical AV
 
 ![hierachy](img/hierarchy.png)
 
+An small video showing the final agent running in Navigation mode 
+
+![gif](img/gif.gif)
+
+
+
+For a full video comparing the performance to and the end-to-end model, see here:
+
+[![video](img/youtube.png)](https://youtu.be/FVJkvy9j-2g)
+
+
+
+## Plug and play
+
+To run the highest hierarchical model right out of the box do the following:
+
+1. Install: follow the instructions of [installation](#Installation) section.
+2. Run `python hrl/common/run_model.py --env Nav --policy Nav` or change `Nav` in both arguments for `Nav_n2n` to see the non-hierarchical solution.
+3. Run `python hrl/common/run_model.py --env Original --policy Original` to run a model very close to State of the art performance.
+
+To see more options and different models you can run, check the [Using `run_model`](#Using `run_model`) section.
+
+
+
+---
+
 ## Installation
 
 this repo mainly uses two big other repos, `stable-baselines` and `CarRacing_v1` (not `CarRacing_v0` from openai gym).
 
 #### 1. Install this repo
 
-0. If you prefer, create a new conda environemnt (`conda create -n HRL`) and activate it (`source activate HRL`).
+0. If you prefer, create a new conda environment and install tensorflow (`conda create -n HRL tensorflow-gpu`) and activate it (`source activate HRL`).
 1. Clone this repo with `git clone https://github.com/NotAnyMike/HRL` and `cd` into it with `cd HRL`.
 2. Install the repo with `pip install -e .`.
+3. Install the requirements with `pip install -r requirements.txt` from the HRL repo.
 
 #### 2. Install CarRacing_v1
 
@@ -21,10 +48,21 @@ this repo mainly uses two big other repos, `stable-baselines` and `CarRacing_v1`
 
 If the environment is correctly installed, you should be able to play by running `python car_racing.py` using the arrows and space bar and quit by pressing `Q`.
 
-#### 3. Install Stable baselines
+### 3. Generate tracks
 
-1. Install `stable-baselines` with `pip install stable-baselines`
-2. Last, install the requirements.txt with `pip install -r requirements.txt` in the HRL repo.
+1. **Inside** the HRL repo, clone [https://github.com/NotAnyMike/tracks](https://github.com/NotAnyMike/tracks) with `git clone https://github.com/NotAnyMike/tracks`.
+
+2. That's all you need. From here you can:
+
+   * You can check [Plug and play](## Plug and play) to see interesting models to run. 
+
+   * Check [Using `run_model`](### Using `run_model`) to see what other type of models you can run
+
+   * Check [How to run experiments](### How to run experiments) to see what kind of experiments you can run.
+
+     
+
+---
 
 
 ## How to run experiments
@@ -58,7 +96,7 @@ Running an experiment outside docker has the advantage of been able to activate 
 Running 
 
 ```bash
-python hrl/common/run_experiment.py --folder toremove --env_num 1
+python hrl/common/run_experiment.py --folder experiments_folder --env_num 1
 ```
 
 will run a simple experiment using the `Base` environment. You can change the environment with the `--env` parameter.  Using hierarchical environments will consume more memory, the higher the model in the hierarchy the more models it is necessary to load, thus the more memory needed.
@@ -107,6 +145,8 @@ One of the most expensive operation is to generate maps. To alleviate this you c
 
 ##### Downloading generated maps
 
+The easiest way is to clone [https://github.com/NotAnyMike/tracks](https://github.com/NotAnyMike/tracks) **inside** HRL. In the repo `tracks` checkout to one of the commits which has more maps, but the last commit should be enough
+
 ##### Generating tracks yourself
 
 TODO: complete readme. Meanwhile there is a `track_generator.py` file inside `hrl.common` which can be used to generate tracks easily. 
@@ -115,11 +155,13 @@ TODO: complete readme. Meanwhile there is a `track_generator.py` file inside `hr
 
 ### Using `run_model`
 
-`run_model` runs the model specified in the environment specified. The only important argument to give is the name of the experiment, e.g. `-e experiment1`, that will run the last saved weights with the base environment.
+`run_model` runs the model specified in the environment specified. The only important argument to give is the weights of the model `--full_path` and the correct environment `--env`, that will run the saved weights with the environment. You can use instead of `--full_path` you can use `--policy` to define which policy of the hierarchy you wan to run.
 
+```bash
+python hrl/common/run_model.py --env Nav --policy Nav
 ```
 
-```
+`run_model` can also be used to measure the performance of the models and store them using tensorboard.
 
 #### Parameters of `run_model`
 
@@ -138,4 +180,29 @@ Not all the following parameters are mandatory. Certain options require some oth
 | `tensorboard`,`tb` | bool | True          | A flag to register the score with tensorboard                |
 | `tag`,`t`          | str  | None          | The tag for the folder in case of using tensorboard flag     |
 | `no_render`        | bool | False         | In case you want to log some info, but do not care about rendering in screen. |
+
+#### Policies
+
+you can check what policies are available in `hrl.weights`, here is a list of the pre-defined policies available out of the box in this repo. The format is `<id> (<small description>)`
+
+| Hierarchical                      | Non hierarchical                |
+| --------------------------------- | ------------------------------- |
+|                                   | base                            |
+|                                   | CLeft/Right (Change left/right) |
+|                                   | D (direct recovery)             |
+|                                   | De (delayed recovery)           |
+|                                   | Keep_lane                       |
+| Nav                               | Nav_n2n                         |
+| Change_lane                       |                                 |
+| NWO (Navigate With Obstacles)     |                                 |
+| NWOO (Navigate WithOut Obstacles) |                                 |
+| Recovery                          | Recovery                        |
+|                                   | Take_center                     |
+|                                   | Turn_left/right                 |
+|                                   | Trun_n2n                        |
+| X                                 |                                 |
+
+Special non hierarchical policies
+
+* Original: a model which has a very high performance very very close to SOTA. To run this model use `python hrl/common/run_model.py --env Original --p Original`.
 

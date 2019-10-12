@@ -1,0 +1,10 @@
+pyglet==1.3.2
+psutil
+tensorboard_logger
+pandas
+tqdm
+stable_baselines
+pympler
+objgraph
+networkx
+pygame
